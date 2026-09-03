@@ -81,8 +81,8 @@ input, select { font-family: inherit; }
 .logo-mark {
   font-family: var(--font-display);
   font-style: italic;
-  font-weight: 700;
-  font-size: 2.1rem;
+  font-weight: 900;
+  font-size: 2.2rem;
   background: var(--gradient-brand);
   -webkit-background-clip: text;
   background-clip: text;
@@ -92,9 +92,9 @@ input, select { font-family: inherit; }
 }
 .logo-text {
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--text-primary);
 }

@@ -1,6 +1,6 @@
-# XXPORN LOVERS
+# XPORN LOVERS
 
-Brand website scaffold implementing the **XXPORN LOVERS** dark-luxury + pink
+Brand website scaffold implementing the **XPORN LOVERS** dark-luxury + pink
 identity system: public site (home, videos) and admin dashboard
 (login + dashboard), built as static HTML/CSS/JS.
 
@@ -22,11 +22,12 @@ assets/img/favicon.svg    Favicon — the brand's large italic "X" mark
 
 ## Brand system
 
-- **Name:** always rendered in full as `XXPORN LOVERS` — never abbreviated.
-- **Logo:** text-based lockup, `.logo` — a large italic serif **X**
-  (`.logo-mark`, Playfair Display, brand gradient fill) immediately followed
-  by smaller uppercase **XPORN LOVERS** (`.logo-text`) in Inter. Variants:
-  `.logo--sm` (mobile/admin sidebar), `.logo--lg` (admin auth screen).
+- **Name:** always rendered in full as `XPORN LOVERS` — never abbreviated.
+- **Logo:** text-based lockup, `.logo` — a large, bold italic serif **X**
+  (`.logo-mark`, Playfair Display 900, brand gradient fill) immediately
+  followed by smaller bold uppercase **PORN LOVERS** (`.logo-text`, Inter
+  800), together reading **XPORN LOVERS**. Variants: `.logo--sm`
+  (mobile/admin sidebar), `.logo--lg` (admin auth screen).
 - **Color:** dark backgrounds (`--bg-primary` `#050505` → `--bg-elevated`
   `#171717`) with pink as an accent only (`--pink` `#FF2D75`,
   `--pink-hover` `#FF5C9A`, `--pink-dark` `#D90052`, `--pink-soft` `#FF8DB5`).
