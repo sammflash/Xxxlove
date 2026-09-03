@@ -1,15 +1,14 @@
 # XXPORN LOVERS
 
 Brand website scaffold implementing the **XXPORN LOVERS** dark-luxury + pink
-identity system: public site (home, videos, blog) and admin dashboard
+identity system: public site (home, videos) and admin dashboard
 (login + dashboard), built as static HTML/CSS/JS.
 
 ## Structure
 
 ```
-index.html              Homepage — hero, featured videos, categories, CTA
+index.html              Homepage — featured videos, categories, CTA
 videos.html              Full video grid with filters + pagination
-blog.html                 Editorial / blog listing
 admin/login.html          Admin sign-in screen
 admin/dashboard.html      Admin dashboard shell (sidebar, stats, table)
 
@@ -38,8 +37,8 @@ assets/img/favicon.svg    Favicon — the brand's large italic "X" mark
   `.play-btn` (circular pink play button), `.chip` category pills,
   `.stat-tile` / `.stat-card`, `.badge-*` status pills.
 
-All video/blog content in this scaffold is placeholder copy — no real
-media is included; thumbnails are CSS gradient placeholders.
+All video content in this scaffold is placeholder copy — no real media is
+included; thumbnails are CSS gradient placeholders.
 
 ## Responsive
 
