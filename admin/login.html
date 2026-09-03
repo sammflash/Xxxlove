@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — XXPORN LOVERS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin">
+
+<div class="auth-screen">
+  <div class="auth-card">
+    <a href="../index.html" class="logo logo--lg">
+      <span class="logo-mark">X</span><span class="logo-text">XPORN <span class="accent">LOVERS</span></span>
+    </a>
+    <div class="auth-head">
+      <h1>Admin Sign In</h1>
+      <p>Enter your credentials to access the dashboard.</p>
+    </div>
+
+    <form action="#" method="post" onsubmit="return false;">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" placeholder="you@xxpornlovers.com" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <div class="field-row">
+        <label class="check"><input type="checkbox" name="remember"> Remember me</label>
+        <a href="#">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="window.location.href='dashboard.html'">Sign In</button>
+    </form>
+
+    <p class="auth-foot">Restricted area — authorized administrators only.</p>
+  </div>
+</div>
+
+</body>
+</html>
