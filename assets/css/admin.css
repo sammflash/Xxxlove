@@ -118,6 +118,20 @@ body.admin { background: var(--bg-primary); }
   background: var(--gradient-brand);
 }
 .sidebar-nav a.active svg { opacity: 1; color: var(--pink-hover); }
+.sidebar-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--pink);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 .sidebar-foot {
   padding: 16px 20px;
   border-top: 1px solid var(--border);
@@ -278,6 +292,8 @@ table.data-table { width: 100%; border-collapse: collapse; min-width: 640px; }
 }
 .row-actions button svg { width: 14px; height: 14px; }
 .row-actions button:hover { color: var(--pink); border-color: var(--pink); }
+.row-actions button[disabled] { opacity: 0.4; cursor: not-allowed; }
+.row-actions button[disabled]:hover { color: var(--text-secondary); border-color: var(--border); }
 
 /* ---------- Mobile admin header + off-canvas sidebar ---------- */
 @media (max-width: 900px) {

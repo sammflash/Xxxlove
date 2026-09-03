@@ -1,0 +1,40 @@
+# XPORN LOVERS — Apache config for shared hosting (Hostinger public_html).
+
+DirectoryIndex index.php
+
+# Friendly error pages — never leak PHP stack traces or DB errors to visitors.
+ErrorDocument 404 /errors/404.php
+ErrorDocument 500 /errors/500.php
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # /video/some-slug  ->  /video.php?slug=some-slug
+  RewriteRule ^video/([a-zA-Z0-9-]+)/?$ video.php?slug=$1 [L,QSA]
+
+  # /category/some-slug  ->  /videos.php?category=some-slug
+  RewriteRule ^category/([a-zA-Z0-9-]+)/?$ videos.php?category=$1 [L,QSA]
+</IfModule>
+
+# Never serve these directly over HTTP — PHP includes them server-side only.
+<FilesMatch "^(config\.php|config\.example\.php)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<FilesMatch "\.(sql|log|md)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+Options -Indexes

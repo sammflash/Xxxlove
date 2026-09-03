@@ -1,0 +1,7 @@
+# Local/environment-specific — never commit real credentials
+config/config.php
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.swp
