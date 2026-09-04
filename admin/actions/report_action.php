@@ -1,5 +1,5 @@
 <?php
-/** POST-only, admin-only: resolve a pending report by removing or dismissing it. */
+/** POST-only, moderator+: resolve a pending report by removing or dismissing it. */
 
 require_once __DIR__ . '/../../includes/session.php';
 require_once __DIR__ . '/../../includes/db.php';
@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../includes/helpers.php';
 require_once __DIR__ . '/../../includes/auth.php';
 
 $admin = require_admin();
+require_role($admin, 'moderator'); // creators don't get report/moderation access
 
 if (!is_post()) {
     redirect('/admin/dashboard.php#reports');

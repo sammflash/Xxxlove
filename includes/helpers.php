@@ -43,3 +43,13 @@ function time_ago(string $datetime): string
     if ($diff < 86400 * 30) return floor($diff / 86400) . 'd ago';
     return date('M j, Y', strtotime($datetime));
 }
+
+/** URL-safe slug from a title: lowercase, ascii, hyphenated. */
+function slugify(string $text): string
+{
+    $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+    $text = strtolower($text);
+    $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+    $text = trim($text, '-');
+    return $text !== '' ? $text : 'item';
+}

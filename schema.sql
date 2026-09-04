@@ -9,24 +9,36 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ---------------------------------------------------------------------------
--- admins — the only authenticated account on the site.
+-- admins — every authenticated account on the site (staff only; there is
+-- still no public user-account system). role is a tier: creator <
+-- moderator < admin. is_owner marks the single founding account that
+-- alone may suspend/delete other accounts — it is never set through the
+-- app, only here (or directly in the database).
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS admins (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username        VARCHAR(50)  NOT NULL UNIQUE,
     password_hash   VARCHAR(255) NOT NULL,
+    role            ENUM('creator','moderator','admin') NOT NULL DEFAULT 'creator',
+    is_owner        TINYINT(1) NOT NULL DEFAULT 0,
+    status          ENUM('active','suspended') NOT NULL DEFAULT 'active',
+    created_by      INT UNSIGNED NULL,
     failed_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
     locked_until    DATETIME NULL,
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    last_login      DATETIME NULL
+    last_login      DATETIME NULL,
+    FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Default admin: username "admin", password "admin".
--- This hash was generated with PHP's password_hash('admin', PASSWORD_DEFAULT).
--- Change it in the app (Account & Security) whenever you like — never required.
-INSERT INTO admins (username, password_hash)
-VALUES ('admin', '$2y$12$5KjKSd2WwJUYisA02uoK/uuiLQ0cDVe2bTgzJy4b/S6G.0Qb4rcei')
+-- Founding owner account: username "Tyche", password "Tyche".
+-- This hash was generated with PHP's password_hash('Tyche', PASSWORD_DEFAULT).
+-- Change the password in the app (Account & Security) whenever you like —
+-- never required. is_owner=1 is permanent: only this account (or whichever
+-- account you manually flip is_owner on in the database) can suspend or
+-- delete other admin/moderator/creator accounts.
+INSERT INTO admins (username, password_hash, role, is_owner)
+VALUES ('Tyche', '$2y$12$AZywfwTOFrSO9pv1zvOrF.Ypts2vtlptYzyvptQgnwk9Rcje8mKrm', 'admin', 1)
 ON DUPLICATE KEY UPDATE username = username;
 
 -- ---------------------------------------------------------------------------
@@ -55,9 +67,13 @@ CREATE TABLE IF NOT EXISTS videos (
     views          INT UNSIGNED NOT NULL DEFAULT 0,
     status         ENUM('published','unpublished','removed') NOT NULL DEFAULT 'published',
     removed_reason VARCHAR(255) NULL,
+    created_by     INT UNSIGNED NULL,
+    updated_by     INT UNSIGNED NULL,
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL,
+    FOREIGN KEY (updated_by) REFERENCES admins(id) ON DELETE SET NULL,
     INDEX idx_videos_status_created (status, created_at),
     INDEX idx_videos_category (category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

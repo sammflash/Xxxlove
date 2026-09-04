@@ -282,7 +282,8 @@ table.data-table { width: 100%; border-collapse: collapse; min-width: 640px; }
 .badge-pending { background: rgba(255, 45, 117, 0.14); color: var(--pink-soft); }
 
 .row-actions { display: flex; gap: 8px; justify-content: flex-end; }
-.row-actions button {
+.row-actions button,
+.row-actions a {
   width: 30px; height: 30px;
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
@@ -290,8 +291,10 @@ table.data-table { width: 100%; border-collapse: collapse; min-width: 640px; }
   color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
 }
-.row-actions button svg { width: 14px; height: 14px; }
-.row-actions button:hover { color: var(--pink); border-color: var(--pink); }
+.row-actions button svg,
+.row-actions a svg { width: 14px; height: 14px; }
+.row-actions button:hover,
+.row-actions a:hover { color: var(--pink); border-color: var(--pink); }
 .row-actions button[disabled] { opacity: 0.4; cursor: not-allowed; }
 .row-actions button[disabled]:hover { color: var(--text-secondary); border-color: var(--border); }
 

@@ -67,7 +67,7 @@ if (is_post()) {
       <?= csrf_field() ?>
       <div class="field">
         <label for="username">Username</label>
-        <input id="username" name="username" type="text" placeholder="admin" autocomplete="username" value="<?= e($_POST['username'] ?? '') ?>" required autofocus>
+        <input id="username" name="username" type="text" placeholder="Username" autocomplete="username" value="<?= e($_POST['username'] ?? '') ?>" required autofocus>
       </div>
       <div class="field">
         <label for="password">Password</label>

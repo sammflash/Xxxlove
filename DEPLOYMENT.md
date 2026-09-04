@@ -17,6 +17,10 @@ mysql -u root -e "
 mysql -u xpl_dev -p xpornlovers_dev < schema.sql
 mysql -u xpl_dev -p xpornlovers_dev < seed.sql   # optional, see "Removing demo data" below
 
+# 2b. Already have a database from before the role/accounts update?
+# Run the migration instead of re-importing schema.sql from scratch:
+mysql -u xpl_dev -p xpornlovers_dev < migrations/002_accounts_and_roles.sql
+
 # 3. Configure
 cp config/config.example.php config/config.php
 # edit config/config.php: DB_HOST/DB_NAME/DB_USER/DB_PASS to match step 1,
@@ -78,26 +82,39 @@ then the homepage. Admin is at `/admin/login.php`.
 6. **Set the website URL** — this is the `SITE_URL` constant from step 4;
    it's used for canonical/Open Graph tags.
 
-7. **Test the admin login** — go to `https://yourdomain/admin/login.php`,
-   sign in with `admin` / `admin`. Immediately set a real password from
-   **Account & Security** on the dashboard if this is going live for
-   real — the default is intentionally never forced, but you should
-   still change it yourself before publishing real content.
+7. **Test the admin login** — go to `https://yourdomain/admin/login.php`
+   (or click the lock icon on the homepage, or visit `/admin`), sign in
+   with the founding owner account, `Tyche` / `Tyche`. Immediately set a
+   real password from **Account & Security** on the dashboard if this is
+   going live for real — the default is intentionally never forced, but
+   you should still change it yourself before publishing real content.
+   From **Manage Accounts**, create separate creator/moderator/admin
+   accounts for anyone else on the team rather than sharing the owner
+   login — see README's role table for what each tier can do.
 
-8. **Test video playback** — open a seeded video (or add a real one
-   directly via SQL/phpMyAdmin into the `videos` table) and confirm the
-   `<video>` player loads and plays the `video_url`.
+8. **Test video management** — as a creator-role account (or higher), go
+   to **Videos → + Add Video**, paste a video URL and thumbnail URL and
+   confirm both live-preview, save, and confirm it plays correctly on the
+   public site.
 
 9. **Test the report flow** — as a logged-out visitor, click "Report" on
-   a video card, submit it, then confirm it appears under **Reports** on
-   the admin dashboard with a working Remove/Dismiss.
+   a video card, submit it, then sign in as a moderator-role account (or
+   higher) and confirm it appears under **Reports** with a working
+   Remove/Dismiss.
 
-10. **Test search** — not implemented yet (see README's "Not yet built").
+10. **Test the account hierarchy** — confirm a creator-role account
+    cannot see or reach `/admin/accounts.php` or `/admin/code.php`
+    (redirected back to the dashboard with a permission message), that a
+    non-owner admin account can create accounts but has no suspend/
+    delete controls, and that only the owner (`Tyche`, or whichever
+    account you've flipped `is_owner` on) can suspend/reactivate/delete.
 
-11. **Test the blog** — not implemented yet (see README's "Not yet built").
+11. **Test search** — not implemented yet (see README's "Not yet built").
 
-12. **Test responsive** — 390 / 430 / 768 / 1024 / 1440 / 1920px, both the
-    public site and `/admin/dashboard.php`.
+12. **Test the blog** — not implemented yet (see README's "Not yet built").
+
+13. **Test responsive** — 390 / 430 / 768 / 1024 / 1440 / 1920px, both the
+    public site and the admin dashboard.
 
 ## Removing demo data before going live
 
@@ -113,18 +130,20 @@ DELETE FROM videos;
 DELETE FROM categories;
 ```
 
-Then add your real categories/videos (directly via SQL or phpMyAdmin for
-now — an admin "Add Video" form is on the "not yet built" list).
+Then add your real categories (direct SQL/phpMyAdmin for now — category
+management isn't in the admin UI yet) and videos (via **Videos → + Add
+Video** in the dashboard).
 
 ## Known limitations
 
-- No Add/Edit video, category, or blog-post admin forms yet — content
-  goes in via direct DB access, and the only way to take a video *down*
-  is the Reports panel's Remove action (or a direct `UPDATE videos SET
-  status = 'unpublished' WHERE id = ...`).
-- No likes/dislikes, comments, blog, or search — the schema for likes/
-  comments/blog exists (`schema.sql`) but nothing reads/writes it yet.
+- Category and blog-post management has no admin UI yet — categories go
+  in via direct DB access; the blog schema exists but nothing reads/
+  writes it yet. Video management is fully built (`admin/videos.php`).
+- No likes/dislikes, comments, or search — the schema for likes/comments
+  exists (`schema.sql`) but nothing reads/writes it yet.
 - No sitemap.xml/robots.txt or structured data yet.
+- No in-app code *editor* — `admin/code.php` is read-only by design (see
+  README). Deploy code changes through git.
 - The age gate is a real server-side gate (session + signed cookie), but
   it is a self-attestation click-through, not identity/age verification
   against a third-party service — that's a meaningfully bigger feature if

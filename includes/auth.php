@@ -1,21 +1,37 @@
 <?php
-/** Admin authentication: login, logout, session guard, basic rate limiting. */
+/**
+ * Admin authentication: login, logout, session guard, role/permission
+ * checks, basic rate limiting.
+ *
+ * Roles, low to high: creator < moderator < admin. is_owner is a
+ * separate flag (not a 4th role) held by the single founding account —
+ * it's the only account that may suspend or delete other accounts. It
+ * is never settable through the app.
+ */
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/session.php';
+require_once __DIR__ . '/helpers.php';
 
 const LOGIN_MAX_ATTEMPTS = 5;
 const LOGIN_LOCKOUT_SECONDS = 300; // 5 minutes
+
+const ROLE_RANK = ['creator' => 1, 'moderator' => 2, 'admin' => 3];
 
 function current_admin(): ?array
 {
     if (empty($_SESSION['admin_id'])) {
         return null;
     }
-    $stmt = db()->prepare('SELECT id, username, last_login FROM admins WHERE id = ? LIMIT 1');
+    $stmt = db()->prepare("SELECT id, username, role, is_owner, status, last_login FROM admins WHERE id = ? AND status = 'active' LIMIT 1");
     $stmt->execute([$_SESSION['admin_id']]);
     $admin = $stmt->fetch();
-    return $admin ?: null;
+    if (!$admin) {
+        // Row is gone or was suspended mid-session — don't leave a dangling session.
+        unset($_SESSION['admin_id']);
+        return null;
+    }
+    return $admin;
 }
 
 function require_admin(): array
@@ -27,9 +43,26 @@ function require_admin(): array
     return $admin;
 }
 
+/** True if $admin's role is at least $minRole (creator < moderator < admin). */
+function admin_has_role(array $admin, string $minRole): bool
+{
+    return (ROLE_RANK[$admin['role']] ?? 0) >= (ROLE_RANK[$minRole] ?? PHP_INT_MAX);
+}
+
+/** Require at least $minRole, or bounce to the dashboard with a flash error. */
+function require_role(array $admin, string $minRole): void
+{
+    if (!admin_has_role($admin, $minRole)) {
+        flash_set('dashboard_error', "You don't have permission to view that page.");
+        redirect('/admin/dashboard.php');
+    }
+}
+
 /**
  * Attempt an admin login. Returns ['ok' => bool, 'error' => ?string].
- * Applies a simple per-account lockout after repeated failures.
+ * Applies a simple per-account lockout after repeated failures, and
+ * blocks suspended accounts (only after the password checks out, so a
+ * wrong guess never reveals whether the account exists or is suspended).
  */
 function attempt_login(string $username, string $password): array
 {
@@ -60,6 +93,10 @@ function attempt_login(string $username, string $password): array
             $upd->execute([$attempts, $lockedUntil, $admin['id']]);
         }
         return ['ok' => false, 'error' => 'Incorrect username or password.'];
+    }
+
+    if ($admin['status'] === 'suspended') {
+        return ['ok' => false, 'error' => 'This account has been suspended. Contact the site owner.'];
     }
 
     // Success: reset failure counter, regenerate session id (prevents
