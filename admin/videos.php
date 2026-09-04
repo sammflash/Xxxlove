@@ -283,6 +283,7 @@ $pendingReportsCount = admin_has_role($admin, 'moderator')
                   <td><span class="badge <?= $badge['class'] ?>"><?= $badge['label'] ?></span></td>
                   <td>
                     <div class="row-actions">
+                      <button type="button" class="share-btn" aria-label="Share" data-share-url="<?= e(rtrim(SITE_URL, '/') . '/video.php?slug=' . urlencode($v['slug'])) ?>" data-share-title="<?= e($v['title']) ?>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
                       <a href="/admin/videos.php?edit=<?= (int) $v['id'] ?>" aria-label="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></a>
                       <form method="post" action="/admin/actions/video_action.php" onsubmit="return confirm('Permanently delete this video? This cannot be undone.');" style="display:inline;">
                         <?= csrf_field() ?>
@@ -313,6 +314,9 @@ $pendingReportsCount = admin_has_role($admin, 'moderator')
   </div>
 </div>
 
+<?php include __DIR__ . '/../includes/partials/share_popover.php'; ?>
+
 <script src="/assets/js/admin.js"></script>
+<script src="/assets/js/share.js"></script>
 </body>
 </html>

@@ -718,3 +718,48 @@ input, select { font-family: inherit; }
   margin-top: 22px;
 }
 .report-modal-actions .btn { padding: 11px 22px; }
+
+/* ---------- Share popover ---------- */
+.share-popover[hidden] { display: none; }
+.share-popover {
+  position: fixed;
+  z-index: 600;
+  width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 8px;
+}
+.share-popover-head {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 6px 10px 8px;
+}
+.share-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+.share-popover-item svg { width: 16px; height: 16px; color: var(--text-secondary); flex-shrink: 0; }
+.share-popover-item:hover { background: var(--bg-elevated); }
+.share-popover-item:hover svg { color: var(--pink); }
+.share-popover-status {
+  padding: 6px 10px 2px;
+  font-size: 0.76rem;
+  color: var(--pink-soft);
+  min-height: 1.2em;
+}

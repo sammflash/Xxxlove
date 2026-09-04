@@ -59,8 +59,16 @@ $related = $relatedStmt->fetchAll();
 $page_title = e($video['title']) . ' — ' . SITE_NAME;
 $page_description = $video['description'] ? mb_substr(strip_tags($video['description']), 0, 160) : ('Watch ' . $video['title'] . ' on ' . SITE_NAME . '.');
 $canonical_path = '/video.php?slug=' . urlencode($video['slug']);
-include __DIR__ . '/includes/partials/head.php';
+// Absolute thumbnail URL so link previews (WhatsApp, Telegram, etc.)
+// can actually fetch and show it — a relative path won't resolve for them.
+$page_image = absolute_url($video['thumbnail_url']);
+$og_type = 'video.other';
 ?>
+<!doctype html>
+<html lang="en">
+<head>
+<?php include __DIR__ . '/includes/partials/head.php'; ?>
+</head>
 <body>
 
 <?php $active = 'videos'; include __DIR__ . '/includes/partials/navbar.php'; ?>
@@ -95,10 +103,16 @@ include __DIR__ . '/includes/partials/head.php';
             <p style="color:var(--text-secondary); margin-top:16px; line-height:1.6; font-size:0.92rem;"><?= nl2br(e($video['description'])) ?></p>
           <?php endif; ?>
         </div>
-        <button type="button" class="btn btn-secondary report-btn" data-video-id="<?= (int) $video['id'] ?>" data-video-title="<?= e($video['title']) ?>" style="position:static; opacity:1; width:auto; height:auto; border-radius:var(--radius-full); padding:11px 20px; gap:8px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:6px;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V3"/></svg>
-          Report
-        </button>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-secondary share-btn" data-share-url="<?= e(rtrim(SITE_URL, '/') . $canonical_path) ?>" data-share-title="<?= e($video['title']) ?>" style="border-radius:var(--radius-full); padding:11px 20px; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:6px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+            Share
+          </button>
+          <button type="button" class="btn btn-secondary report-btn" data-video-id="<?= (int) $video['id'] ?>" data-video-title="<?= e($video['title']) ?>" style="position:static; opacity:1; width:auto; height:auto; border-radius:var(--radius-full); padding:11px 20px; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:6px;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V3"/></svg>
+            Report
+          </button>
+        </div>
       </div>
     </div>
   </section>
@@ -124,7 +138,9 @@ include __DIR__ . '/includes/partials/head.php';
 
 <?php include __DIR__ . '/includes/partials/footer.php'; ?>
 <?php include __DIR__ . '/includes/partials/report_modal.php'; ?>
+<?php include __DIR__ . '/includes/partials/share_popover.php'; ?>
 
 <script src="/assets/js/main.js"></script>
+<script src="/assets/js/share.js"></script>
 </body>
 </html>

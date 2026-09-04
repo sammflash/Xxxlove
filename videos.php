@@ -57,8 +57,12 @@ function videos_page_url(int $p, ?string $category): string
 $page_title = $activeCategory ? e($activeCategory['name']) . ' Videos — ' . SITE_NAME : 'Videos — ' . SITE_NAME;
 $page_description = 'Browse all videos on ' . SITE_NAME . '.';
 $canonical_path = '/videos.php' . ($activeCategory ? '?category=' . urlencode($activeCategory['slug']) : '');
-include __DIR__ . '/includes/partials/head.php';
 ?>
+<!doctype html>
+<html lang="en">
+<head>
+<?php include __DIR__ . '/includes/partials/head.php'; ?>
+</head>
 <body>
 
 <?php $active = 'videos'; include __DIR__ . '/includes/partials/navbar.php'; ?>

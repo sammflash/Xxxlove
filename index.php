@@ -25,8 +25,12 @@ $categories = $pdo->query('SELECT name, slug FROM categories ORDER BY name')->fe
 $page_title = SITE_NAME;
 $page_description = 'XPORN LOVERS — a premium, dark, curated video platform.';
 $canonical_path = '/';
-include __DIR__ . '/includes/partials/head.php';
 ?>
+<!doctype html>
+<html lang="en">
+<head>
+<?php include __DIR__ . '/includes/partials/head.php'; ?>
+</head>
 <body>
 
 <?php $active = 'home'; $show_admin_lock = true; include __DIR__ . '/includes/partials/navbar.php'; ?>

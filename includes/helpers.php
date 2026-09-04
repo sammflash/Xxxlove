@@ -53,3 +53,21 @@ function slugify(string $text): string
     $text = trim($text, '-');
     return $text !== '' ? $text : 'item';
 }
+
+/**
+ * Turn a stored path/URL into an absolute URL: already-absolute
+ * external links (old thumbnail_url values, seed data) pass through
+ * unchanged; local /uploads/... paths get SITE_URL prefixed. Link
+ * previews (WhatsApp, Telegram, etc.) fetch og:image directly, so it
+ * must always be a fully-qualified URL, never a relative path.
+ */
+function absolute_url(?string $path): ?string
+{
+    if (!$path) {
+        return null;
+    }
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    return rtrim(SITE_URL, '/') . '/' . ltrim($path, '/');
+}

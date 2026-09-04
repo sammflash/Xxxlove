@@ -85,6 +85,15 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   related videos from the same category. No public registration/login
   anywhere — visitors are identified only by a random, httponly cookie
   for view/report de-duplication.
+- **Share** — a Share button under the player on every video page, and
+  on every row of the admin video library/Recent Uploads (any account —
+  it's not permission-gated, just a convenience). Opens a small popover
+  with WhatsApp, Telegram, and Copy Link. The video page also carries
+  proper `og:image`/`twitter:image` tags with an absolute URL to the
+  video's thumbnail, so pasting the link into WhatsApp/Telegram/etc.
+  shows a real preview card, not a bare link — `includes/helpers.php`'s
+  `absolute_url()` handles both locally-uploaded thumbnail paths and
+  old external thumbnail URLs.
 
 ## Not yet built
 
@@ -125,7 +134,7 @@ includes/age_gate_core.php  Pure age-gate helpers (cookie signing)
 includes/render.php         format_views(), render_video_card()
 includes/helpers.php        e(), redirect(), flash messages, time_ago(), slugify()
 includes/uploads.php        Validated video/thumbnail upload handling, embed-src extraction
-includes/partials/          Shared navbar/footer/head/report-modal/admin-sidebar HTML
+includes/partials/          Shared navbar/footer/head/report-modal/share-popover/admin-sidebar HTML
 
 config/config.example.php   Config template (copy to config.php — gitignored)
 schema.sql                  Full MySQL schema (fresh installs)
@@ -144,6 +153,7 @@ assets/css/main.css         Public site styles + report button/modal
 assets/css/admin.css        Admin styles + sidebar badges + role UI
 assets/js/main.js           Mobile nav drawer, category chips, report modal wiring
 assets/js/admin.js          Admin sidebar toggle (mobile off-canvas)
+assets/js/share.js          Share popover (WhatsApp/Telegram/Copy Link) — public + admin
 assets/img/favicon.svg      Favicon — the brand's large italic "X" mark
 ```
 
