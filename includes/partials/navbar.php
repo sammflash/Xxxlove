@@ -17,6 +17,11 @@ $active = $active ?? null;
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" placeholder="Search videos…" aria-label="Search">
       </label>
+      <?php if (!empty($show_admin_lock)): ?>
+        <a href="/admin/" class="btn-icon" aria-label="Admin" title="Admin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </a>
+      <?php endif; ?>
       <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span></button>
     </div>
   </div>

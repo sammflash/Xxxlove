@@ -29,7 +29,7 @@ include __DIR__ . '/includes/partials/head.php';
 ?>
 <body>
 
-<?php $active = 'home'; include __DIR__ . '/includes/partials/navbar.php'; ?>
+<?php $active = 'home'; $show_admin_lock = true; include __DIR__ . '/includes/partials/navbar.php'; ?>
 
 <main>
   <!-- Hero -->

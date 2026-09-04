@@ -25,7 +25,6 @@
         <ul class="footer-links">
           <li><a href="#">About</a></li>
           <li><a href="#">Contact</a></li>
-          <li><a href="/admin/login.php">Admin Login</a></li>
           <li><a href="#">Careers</a></li>
         </ul>
       </div>
