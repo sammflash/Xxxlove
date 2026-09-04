@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/includes/session.php';
+require_once __DIR__ . '/includes/helpers.php';
+require_once __DIR__ . '/includes/maintenance.php';
+check_maintenance_mode(); // before the age gate — a visitor shouldn't verify their age just to hit a holding page
 require_once __DIR__ . '/includes/age_gate.php';
 require_once __DIR__ . '/includes/db.php';
-require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/render.php';
 
 $pdo = db();

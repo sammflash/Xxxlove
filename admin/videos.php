@@ -71,6 +71,9 @@ $videoSuccess = flash_get('video_success');
 $pendingReportsCount = admin_has_role($admin, 'moderator')
     ? (int) $pdo->query("SELECT COUNT(*) FROM reports WHERE status = 'pending'")->fetchColumn()
     : 0;
+$pendingCommentsCount = admin_has_role($admin, 'moderator')
+    ? (int) $pdo->query("SELECT COUNT(*) FROM comments WHERE status = 'pending'")->fetchColumn()
+    : 0;
 ?>
 <!doctype html>
 <html lang="en">
@@ -163,6 +166,12 @@ $pendingReportsCount = admin_has_role($admin, 'moderator')
                   </select>
                 </div>
               <?php endif; ?>
+              <div class="field">
+                <label class="check" style="text-transform:none; font-weight:500; color:var(--text-primary); font-size:0.85rem;">
+                  <input type="checkbox" name="featured" value="1" <?= !empty($editingVideo['featured']) ? 'checked' : '' ?> style="width:auto;">
+                  Feature on homepage
+                </label>
+              </div>
 
               <div class="field">
                 <label>Thumbnail <span style="text-transform:none; font-weight:400; color:var(--text-muted);">(image upload<?= $editingVideo ? ' — optional, keeps the current one if left blank' : ', required' ?>)</span></label>

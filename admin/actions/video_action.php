@@ -83,6 +83,7 @@ $categoryId = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT) ?: nu
 $duration = trim((string) ($_POST['duration'] ?? ''));
 $status = $_POST['status'] ?? 'published';
 $sourceType = $_POST['source_type'] ?? 'upload';
+$featured = isset($_POST['featured']) ? 1 : 0;
 
 $errors = [];
 $newVideoFilePath = null;   // newly-saved file this request, for cleanup on validation failure
@@ -167,12 +168,12 @@ if ($errors) {
 if ($action === 'create') {
     $slug = unique_video_slug($pdo, $title);
     $stmt = $pdo->prepare(
-        'INSERT INTO videos (title, slug, description, category_id, video_url, source_type, embed_url, thumbnail_url, duration, status, created_by, updated_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO videos (title, slug, description, category_id, video_url, source_type, embed_url, thumbnail_url, duration, status, featured, created_by, updated_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $title, $slug, $description ?: null, $categoryId, $finalVideoUrl, $sourceType, $finalEmbedUrl,
-        $finalThumbnailUrl, $duration ?: null, 'published', $admin['id'], $admin['id'],
+        $finalThumbnailUrl, $duration ?: null, 'published', $featured, $admin['id'], $admin['id'],
     ]);
     flash_set('video_success', 'Added "' . $title . '".');
     redirect('/admin/videos.php');
@@ -183,11 +184,11 @@ $id = (int) $existingVideo['id'];
 $slug = unique_video_slug($pdo, $title, $id);
 $stmt = $pdo->prepare(
     'UPDATE videos SET title = ?, slug = ?, description = ?, category_id = ?, video_url = ?, source_type = ?,
-     embed_url = ?, thumbnail_url = ?, duration = ?, status = ?, updated_by = ? WHERE id = ?'
+     embed_url = ?, thumbnail_url = ?, duration = ?, status = ?, featured = ?, updated_by = ? WHERE id = ?'
 );
 $stmt->execute([
     $title, $slug, $description ?: null, $categoryId, $finalVideoUrl, $sourceType, $finalEmbedUrl,
-    $finalThumbnailUrl, $duration ?: null, $status, $admin['id'], $id,
+    $finalThumbnailUrl, $duration ?: null, $status, $featured, $admin['id'], $id,
 ]);
 
 // Clean up replaced files now that the new state is safely saved.

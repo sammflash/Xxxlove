@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/includes/session.php';
+require_once __DIR__ . '/includes/helpers.php';
+require_once __DIR__ . '/includes/maintenance.php';
+check_maintenance_mode(); // before the age gate — a visitor shouldn't verify their age just to hit a holding page
 require_once __DIR__ . '/includes/age_gate.php';
 require_once __DIR__ . '/includes/db.php';
-require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/render.php';
 
 $pdo = db();
@@ -56,6 +58,29 @@ $relatedStmt = $pdo->prepare(
 $relatedStmt->execute([$video['id'], $video['category_id'], $video['category_id'], $video['category_id']]);
 $related = $relatedStmt->fetchAll();
 
+// Likes/dislikes: counts + this visitor's own vote (if any), anonymous.
+$likeCounts = $pdo->prepare('SELECT type, COUNT(*) AS c FROM likes WHERE video_id = ? GROUP BY type');
+$likeCounts->execute([$video['id']]);
+$likeCount = 0;
+$dislikeCount = 0;
+foreach ($likeCounts->fetchAll() as $row) {
+    if ($row['type'] === 'like') $likeCount = (int) $row['c'];
+    if ($row['type'] === 'dislike') $dislikeCount = (int) $row['c'];
+}
+$myVoteStmt = $pdo->prepare('SELECT type FROM likes WHERE video_id = ? AND visitor_identifier = ? LIMIT 1');
+$myVoteStmt->execute([$video['id'], visitor_hash('like')]);
+$myVote = $myVoteStmt->fetchColumn() ?: null;
+
+// Comments: only approved ones are public.
+$commentsStmt = $pdo->prepare(
+    "SELECT user_name, comment, created_at FROM comments
+     WHERE video_id = ? AND status = 'approved'
+     ORDER BY created_at DESC
+     LIMIT 50"
+);
+$commentsStmt->execute([$video['id']]);
+$comments = $commentsStmt->fetchAll();
+
 $page_title = e($video['title']) . ' — ' . SITE_NAME;
 $page_description = $video['description'] ? mb_substr(strip_tags($video['description']), 0, 160) : ('Watch ' . $video['title'] . ' on ' . SITE_NAME . '.');
 $canonical_path = '/video.php?slug=' . urlencode($video['slug']);
@@ -103,7 +128,15 @@ $og_type = 'video.other';
             <p style="color:var(--text-secondary); margin-top:16px; line-height:1.6; font-size:0.92rem;"><?= nl2br(e($video['description'])) ?></p>
           <?php endif; ?>
         </div>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;" id="like-dislike-bar" data-video-id="<?= (int) $video['id'] ?>" data-csrf="<?= e(csrf_token()) ?>">
+          <button type="button" class="btn btn-secondary like-btn<?= $myVote === 'like' ? ' is-active' : '' ?>" data-vote-type="like" style="border-radius:var(--radius-full); padding:11px 20px; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:6px;"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+            <span id="like-count"><?= format_views($likeCount) ?></span>
+          </button>
+          <button type="button" class="btn btn-secondary dislike-btn<?= $myVote === 'dislike' ? ' is-active' : '' ?>" data-vote-type="dislike" style="border-radius:var(--radius-full); padding:11px 20px; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:6px;"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+            <span id="dislike-count"><?= format_views($dislikeCount) ?></span>
+          </button>
           <button type="button" class="btn btn-secondary share-btn" data-share-url="<?= e(rtrim(SITE_URL, '/') . $canonical_path) ?>" data-share-title="<?= e($video['title']) ?>" style="border-radius:var(--radius-full); padding:11px 20px; gap:8px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:6px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
             Share
@@ -113,6 +146,47 @@ $og_type = 'video.other';
             Report
           </button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comments -->
+  <section class="section" style="padding-top:0;">
+    <div class="container" style="max-width:1100px;">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Discussion</span>
+          <h2 class="section-title" style="margin-top:6px;">Comments <span style="color:var(--text-muted); font-weight:400;">(<?= count($comments) ?>)</span></h2>
+        </div>
+      </div>
+
+      <form id="comment-form" class="comment-form" data-video-id="<?= (int) $video['id'] ?>">
+        <?= csrf_field() ?>
+        <input type="hidden" name="video_id" value="<?= (int) $video['id'] ?>">
+        <div class="field">
+          <label for="comment-name">Name</label>
+          <input id="comment-name" name="user_name" type="text" maxlength="80" required placeholder="Your name">
+        </div>
+        <div class="field">
+          <label for="comment-text">Comment</label>
+          <textarea id="comment-text" name="comment" rows="3" maxlength="1000" required placeholder="Share your thoughts…"></textarea>
+        </div>
+        <p class="comment-form-status" id="comment-form-status" role="status" aria-live="polite"></p>
+        <button type="submit" class="btn btn-primary" id="comment-submit-btn">Post Comment</button>
+      </form>
+
+      <div class="comment-list">
+        <?php if ($comments): foreach ($comments as $c): ?>
+          <div class="comment-item">
+            <div class="comment-item-head">
+              <strong><?= e($c['user_name']) ?></strong>
+              <span><?= e(time_ago($c['created_at'])) ?></span>
+            </div>
+            <p><?= nl2br(e($c['comment'])) ?></p>
+          </div>
+        <?php endforeach; else: ?>
+          <p style="color:var(--text-secondary); font-size:0.88rem; padding:20px 0;">No comments yet — be the first to share your thoughts.</p>
+        <?php endif; ?>
       </div>
     </div>
   </section>

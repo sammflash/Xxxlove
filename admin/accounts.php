@@ -23,6 +23,9 @@ $accountsSuccess = flash_get('accounts_success');
 $pendingReportsCount = admin_has_role($admin, 'moderator')
     ? (int) $pdo->query("SELECT COUNT(*) FROM reports WHERE status = 'pending'")->fetchColumn()
     : 0;
+$pendingCommentsCount = admin_has_role($admin, 'moderator')
+    ? (int) $pdo->query("SELECT COUNT(*) FROM comments WHERE status = 'pending'")->fetchColumn()
+    : 0;
 ?>
 <!doctype html>
 <html lang="en">

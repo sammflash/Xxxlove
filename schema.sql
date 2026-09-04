@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS videos (
     views          INT UNSIGNED NOT NULL DEFAULT 0,
     status         ENUM('published','unpublished','removed') NOT NULL DEFAULT 'published',
     removed_reason VARCHAR(255) NULL,
+    featured       TINYINT(1) NOT NULL DEFAULT 0,
     created_by     INT UNSIGNED NULL,
     updated_by     INT UNSIGNED NULL,
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -81,7 +82,8 @@ CREATE TABLE IF NOT EXISTS videos (
     FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL,
     FOREIGN KEY (updated_by) REFERENCES admins(id) ON DELETE SET NULL,
     INDEX idx_videos_status_created (status, created_at),
-    INDEX idx_videos_category (category_id)
+    INDEX idx_videos_category (category_id),
+    INDEX idx_videos_featured (featured, status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
@@ -168,7 +170,13 @@ CREATE TABLE IF NOT EXISTS settings (
 
 INSERT INTO settings (setting_key, setting_value) VALUES
     ('site_name', 'XPORN LOVERS'),
-    ('site_tagline', 'Dark. Premium. Curated.')
+    ('site_tagline', 'Dark · Premium · Curated'),
+    ('footer_about', 'A premium curated video platform. Dark, minimal, and built for a fast, distraction-free viewing experience.'),
+    ('contact_email', ''),
+    ('social_x', ''),
+    ('social_instagram', ''),
+    ('social_telegram', ''),
+    ('maintenance_mode', '0')
 ON DUPLICATE KEY UPDATE setting_key = setting_key;
 
 SET FOREIGN_KEY_CHECKS = 1;

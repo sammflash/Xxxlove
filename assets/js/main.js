@@ -30,7 +30,90 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   initReportModal();
+  initLikeDislike();
+  initCommentForm();
 });
+
+/** Wires the like/dislike buttons on a video page to /api/like.php. */
+function initLikeDislike() {
+  const bar = document.getElementById('like-dislike-bar');
+  if (!bar) return;
+
+  const videoId = bar.dataset.videoId;
+  const csrfToken = bar.dataset.csrf;
+  const likeBtn = bar.querySelector('.like-btn');
+  const dislikeBtn = bar.querySelector('.dislike-btn');
+  const likeCount = document.getElementById('like-count');
+  const dislikeCount = document.getElementById('dislike-count');
+
+  async function vote(type) {
+    likeBtn.disabled = true;
+    dislikeBtn.disabled = true;
+    try {
+      const res = await fetch('/api/like.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ csrf_token: csrfToken, video_id: videoId, type }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        likeCount.textContent = data.likes;
+        dislikeCount.textContent = data.dislikes;
+        likeBtn.classList.toggle('is-active', data.my_vote === 'like');
+        dislikeBtn.classList.toggle('is-active', data.my_vote === 'dislike');
+      }
+    } catch (err) {
+      // Silent — a failed vote just leaves the counts as they were.
+    } finally {
+      likeBtn.disabled = false;
+      dislikeBtn.disabled = false;
+    }
+  }
+
+  likeBtn.addEventListener('click', () => vote('like'));
+  dislikeBtn.addEventListener('click', () => vote('dislike'));
+}
+
+/** Wires the comment form on a video page to /api/comment.php. */
+function initCommentForm() {
+  const form = document.getElementById('comment-form');
+  if (!form) return;
+
+  const statusField = document.getElementById('comment-form-status');
+  const submitBtn = document.getElementById('comment-submit-btn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusField.textContent = '';
+    statusField.className = 'comment-form-status';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting…';
+
+    try {
+      const res = await fetch('/api/comment.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form)),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        statusField.textContent = data.message || 'Thanks — your comment is awaiting approval.';
+        statusField.className = 'comment-form-status is-success';
+        form.reset();
+      } else {
+        statusField.textContent = data.error || 'Something went wrong. Please try again.';
+        statusField.className = 'comment-form-status is-error';
+      }
+    } catch (err) {
+      statusField.textContent = 'Network error. Please try again.';
+      statusField.className = 'comment-form-status is-error';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Post Comment';
+    }
+  });
+}
 
 /**
  * Wires every ".report-btn" on the page to the shared "#report-modal".

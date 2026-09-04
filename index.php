@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/includes/session.php';
+require_once __DIR__ . '/includes/helpers.php';
+require_once __DIR__ . '/includes/maintenance.php';
+check_maintenance_mode(); // before the age gate — a visitor shouldn't verify their age just to hit a holding page
 require_once __DIR__ . '/includes/age_gate.php';
 require_once __DIR__ . '/includes/db.php';
-require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/render.php';
 
 $pdo = db();
@@ -11,12 +13,43 @@ $videoCount = (int) $pdo->query("SELECT COUNT(*) FROM videos WHERE status = 'pub
 $categoryCount = (int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn();
 $totalViews = (int) $pdo->query("SELECT COALESCE(SUM(views), 0) FROM videos WHERE status = 'published'")->fetchColumn();
 
+// Featured: hand-picked via the "Feature on homepage" checkbox in the
+// video editor. Falls back to the latest videos when nothing has been
+// marked featured yet, so the section is never empty out of the box.
 $featured = $pdo->query(
+    "SELECT v.*, c.name AS category_name
+     FROM videos v
+     LEFT JOIN categories c ON c.id = v.category_id
+     WHERE v.status = 'published' AND v.featured = 1
+     ORDER BY v.created_at DESC
+     LIMIT 8"
+)->fetchAll();
+if (!$featured) {
+    $featured = $pdo->query(
+        "SELECT v.*, c.name AS category_name
+         FROM videos v
+         LEFT JOIN categories c ON c.id = v.category_id
+         WHERE v.status = 'published'
+         ORDER BY v.created_at DESC
+         LIMIT 8"
+    )->fetchAll();
+}
+
+$latest = $pdo->query(
     "SELECT v.*, c.name AS category_name
      FROM videos v
      LEFT JOIN categories c ON c.id = v.category_id
      WHERE v.status = 'published'
      ORDER BY v.created_at DESC
+     LIMIT 8"
+)->fetchAll();
+
+$trending = $pdo->query(
+    "SELECT v.*, c.name AS category_name
+     FROM videos v
+     LEFT JOIN categories c ON c.id = v.category_id
+     WHERE v.status = 'published'
+     ORDER BY v.views DESC, v.created_at DESC
      LIMIT 8"
 )->fetchAll();
 
@@ -39,7 +72,7 @@ $canonical_path = '/';
   <!-- Hero -->
   <section class="hero">
     <div class="container hero-content">
-      <span class="eyebrow">Dark · Premium · Curated</span>
+      <span class="eyebrow"><?= e(setting('site_tagline', 'Dark · Premium · Curated')) ?></span>
       <div class="hero-actions" style="margin-top:28px;">
         <a href="/videos.php" class="btn btn-primary">Watch Video</a>
         <a href="#featured" class="btn btn-secondary">View More</a>
@@ -79,6 +112,46 @@ $canonical_path = '/';
       <?php endif; ?>
     </div>
   </section>
+
+  <!-- Latest -->
+  <?php if ($latest): ?>
+    <section class="section" id="latest">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Fresh</span>
+            <h2 class="section-title" style="margin-top:6px;">Latest Videos</h2>
+          </div>
+          <a href="/videos.php" class="link-more">View all →</a>
+        </div>
+        <div class="video-grid">
+          <?php foreach ($latest as $video): ?>
+            <?= render_video_card($video) ?>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
+
+  <!-- Trending -->
+  <?php if ($trending): ?>
+    <section class="section" id="trending" style="padding-top:0;">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Popular</span>
+            <h2 class="section-title" style="margin-top:6px;">Trending Videos</h2>
+          </div>
+          <a href="/videos.php" class="link-more">View all →</a>
+        </div>
+        <div class="video-grid">
+          <?php foreach ($trending as $video): ?>
+            <?= render_video_card($video) ?>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <!-- Categories -->
   <section class="section" id="categories" style="background:var(--bg-secondary); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">

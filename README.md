@@ -95,21 +95,53 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   `absolute_url()` handles both locally-uploaded thumbnail paths and
   old external thumbnail URLs.
 
+- **Search** (`search.php`) — a simple title/description match over
+  published videos, wired to the navbar's search box (desktop and
+  mobile). No full-text ranking, just `LIKE` with the wildcard
+  characters properly escaped (`like_escape()` in `includes/helpers.php`).
+- **Likes / dislikes** — one vote per anonymous visitor per video
+  (`likes` table, de-duplicated the same way views are). Clicking the
+  active choice again removes it; clicking the other one switches it.
+  `api/like.php` handles the AJAX round-trip.
+- **Comments** — a name + text form on every video page
+  (`api/comment.php`, CSRF-protected, session-based rate limiting).
+  Comments post as `pending` and only appear publicly once approved —
+  moderated from **Comments** in the sidebar (`admin/comments.php`,
+  moderator role+): approve, reject, or delete.
+- **Category management** (`admin/categories.php`, creator role+, same
+  tier as video management) — add/edit/delete, with an auto-generated
+  (or custom) slug. Deleting a category never deletes its videos — they
+  just fall back to "General" (`ON DELETE SET NULL`).
+- **Website Settings** (`admin/settings.php`, admin role+) — homepage
+  tagline, footer about text, contact email, and social links (all read
+  live by the public site via `setting()`/`all_settings()` in
+  `includes/helpers.php`), plus a real **maintenance mode** toggle that
+  takes the public site down behind a branded holding page for
+  everyone except signed-in staff (`includes/maintenance.php`, checked
+  before the age gate on every public entry point).
+- **Featured / Latest / Trending** on the homepage — three distinct
+  sections now: Featured is hand-picked via a "Feature on homepage"
+  checkbox on each video (falls back to the latest videos if nothing's
+  been marked featured yet, so it's never empty out of the box), Latest
+  is a straight `created_at DESC` feed, Trending is `views DESC`.
+
 ## Not yet built
 
-Scoped out on purpose — ask if you want any of these next: category/blog
-CRUD in the admin, likes/dislikes, comments, blog module, search, SEO
-sitemap/robots.txt, and the `/video/slug` and `/category/slug` pretty-URL
-rewrites (the `.htaccess` rules exist but nothing currently links to those
-paths — all real links use `/video.php?slug=...` and
+Scoped out on purpose — ask if you want any of these next: a blog
+module (the `blog_posts` table and admin/code.php's file list already
+account for it, but there's no admin UI or public reader for it yet),
+SEO sitemap/robots.txt, and the `/video/slug` and `/category/slug`
+pretty-URL rewrites (the `.htaccess` rules exist but nothing currently
+links to those paths — all real links use `/video.php?slug=...` and
 `/videos.php?category=...`).
 
 ## Structure
 
 ```
-index.php                 Homepage — age-gated, reads featured videos from DB
+index.php                 Homepage — age-gated, Featured/Latest/Trending sections from DB
 videos.php                 Video listing — category filter + pagination
-video.php                  Video detail — player, related videos, report
+video.php                  Video detail — player, likes/dislikes, comments, related videos, report
+search.php                  Search results — title/description match over published videos
 age-gate-action.php        Handles the age-gate form POST
 
 admin/login.php            Real session-based admin login (any role)
@@ -117,22 +149,31 @@ admin/logout.php
 admin/index.php            Canonical /admin entry point (routes by auth state)
 admin/dashboard.php        Live stats, Reports panel (moderator+), Recent Uploads, Account & Security
 admin/videos.php           Video library + add/edit form with live previews (creator+)
+admin/categories.php       Category list + add/edit/delete form (creator+)
+admin/comments.php         Comment moderation — approve/reject/delete (moderator+)
+admin/settings.php         Website settings + maintenance mode toggle (admin+)
 admin/accounts.php         Create accounts (admin+); suspend/reactivate/delete (owner only)
 admin/code.php             Read-only source viewer (admin+) — no write endpoint anywhere
 admin/actions/report_action.php          Remove / Dismiss a report (moderator+, CSRF)
 admin/actions/video_action.php           Create/update/delete a video (creator+, CSRF)
+admin/actions/category_action.php        Create/update/delete a category (creator+, CSRF)
+admin/actions/comment_action.php         Approve/reject/delete a comment (moderator+, CSRF)
+admin/actions/settings_action.php        Save website settings (admin+, CSRF)
 admin/actions/account_action.php         Change own username / password (any role, CSRF)
 admin/actions/account_manage_action.php  Create account (admin+) / suspend, reactivate, delete (owner only)
 
 api/report.php             Public report-submission endpoint (CSRF, rate-limited)
+api/like.php                Public like/dislike endpoint (CSRF, one vote per visitor)
+api/comment.php             Public comment-submission endpoint (CSRF, rate-limited)
 
 includes/db.php             PDO connection
 includes/session.php        Secure session bootstrap, CSRF helpers, visitor identifier
 includes/auth.php           Login/logout/guard, require_role() permission checks, lockout
 includes/age_gate.php       Age-gate render + check (site-wide include)
 includes/age_gate_core.php  Pure age-gate helpers (cookie signing)
+includes/maintenance.php    Maintenance-mode holding page (checked before the age gate)
 includes/render.php         format_views(), render_video_card()
-includes/helpers.php        e(), redirect(), flash messages, time_ago(), slugify()
+includes/helpers.php        e(), redirect(), flash messages, time_ago(), slugify(), setting()
 includes/uploads.php        Validated video/thumbnail upload handling, embed-src extraction
 includes/partials/          Shared navbar/footer/head/report-modal/share-popover/admin-sidebar HTML
 
@@ -140,6 +181,7 @@ config/config.example.php   Config template (copy to config.php — gitignored)
 schema.sql                  Full MySQL schema (fresh installs)
 migrations/002_accounts_and_roles.sql   Adds roles/status/owner to an existing DB
 migrations/003_upload_and_embed.sql     Adds video source_type/embed_url to an existing DB
+migrations/004_featured_search_settings.sql   Adds videos.featured + new settings keys
 seed.sql                    Optional demo categories/videos for dev
 
 uploads/videos/, uploads/thumbnails/   Uploaded files land here; own .htaccess disables script execution

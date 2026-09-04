@@ -55,6 +55,37 @@ function slugify(string $text): string
 }
 
 /**
+ * Simple key/value site settings, read from the `settings` table.
+ * Fetched once per request and cached in a static var — every setting
+ * lookup after the first is free.
+ */
+function all_settings(): array
+{
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        require_once __DIR__ . '/db.php';
+        $rows = db()->query('SELECT setting_key, setting_value FROM settings')->fetchAll();
+        foreach ($rows as $row) {
+            $cache[$row['setting_key']] = $row['setting_value'];
+        }
+    }
+    return $cache;
+}
+
+function setting(string $key, string $default = ''): string
+{
+    $all = all_settings();
+    return $all[$key] ?? $default;
+}
+
+/** Escape a user-supplied string for safe use inside a LIKE pattern's %...% wildcards. */
+function like_escape(string $value): string
+{
+    return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+}
+
+/**
  * Turn a stored path/URL into an absolute URL: already-absolute
  * external links (old thumbnail_url values, seed data) pass through
  * unchanged; local /uploads/... paths get SITE_URL prefixed. Link

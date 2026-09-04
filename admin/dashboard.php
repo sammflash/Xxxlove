@@ -14,6 +14,7 @@ $stats = [
     'published_videos' => (int) $pdo->query("SELECT COUNT(*) FROM videos WHERE status = 'published'")->fetchColumn(),
     'total_views'      => (int) $pdo->query('SELECT COALESCE(SUM(views), 0) FROM videos')->fetchColumn(),
     'pending_reports'  => $canModerate ? (int) $pdo->query("SELECT COUNT(*) FROM reports WHERE status = 'pending'")->fetchColumn() : 0,
+    'pending_comments' => $canModerate ? (int) $pdo->query("SELECT COUNT(*) FROM comments WHERE status = 'pending'")->fetchColumn() : 0,
 ];
 
 $pendingReports = [];
@@ -83,7 +84,7 @@ $dashboardError = flash_get('dashboard_error');
 <body class="admin">
 
 <div class="admin-shell">
-  <?php $active = 'dashboard'; $pendingReportsCount = $stats['pending_reports']; include __DIR__ . '/../includes/partials/admin_sidebar.php'; ?>
+  <?php $active = 'dashboard'; $pendingReportsCount = $stats['pending_reports']; $pendingCommentsCount = $stats['pending_comments']; include __DIR__ . '/../includes/partials/admin_sidebar.php'; ?>
 
   <div class="admin-main">
     <header class="admin-topbar">

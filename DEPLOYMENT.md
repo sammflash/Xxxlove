@@ -17,12 +17,14 @@ mysql -u root -e "
 mysql -u xpl_dev -p xpornlovers_dev < schema.sql
 mysql -u xpl_dev -p xpornlovers_dev < seed.sql   # optional, see "Removing demo data" below
 
-# 2b. Already have a database from before the role/accounts update, or
-# the video-upload/embed update? Run whichever migrations you're missing
-# instead of re-importing schema.sql from scratch (both are safe to run
-# even if partially applied already):
+# 2b. Already have a database from before the role/accounts update, the
+# video-upload/embed update, or the featured/search/settings update?
+# Run whichever migrations you're missing instead of re-importing
+# schema.sql from scratch (all three are safe to run even if partially
+# applied already):
 mysql -u xpl_dev -p xpornlovers_dev < migrations/002_accounts_and_roles.sql
 mysql -u xpl_dev -p xpornlovers_dev < migrations/003_upload_and_embed.sql
+mysql -u xpl_dev -p xpornlovers_dev < migrations/004_featured_search_settings.sql
 
 # 3. Configure
 cp config/config.example.php config/config.php
@@ -126,11 +128,29 @@ then the homepage. Admin is at `/admin/login.php`.
     delete controls, and that only the owner (`Tyche`, or whichever
     account you've flipped `is_owner` on) can suspend/reactivate/delete.
 
-11. **Test search** — not implemented yet (see README's "Not yet built").
+11. **Test search** — use the navbar search box (desktop and mobile) and
+    confirm it lands on `/search.php?q=...` with matching results.
 
-12. **Test the blog** — not implemented yet (see README's "Not yet built").
+12. **Test likes/dislikes and comments** — on a video page, like, then
+    dislike (confirm it switches, and clicking the same one again
+    removes it), and post a comment; confirm it does **not** appear
+    publicly until approved from **Comments** in the admin sidebar
+    (moderator role+ — approve, reject, or delete).
 
-13. **Test responsive** — 390 / 430 / 768 / 1024 / 1440 / 1920px, both the
+13. **Test category management** — from **Categories** in the admin
+    sidebar (creator role+), add, edit, and delete a category; confirm
+    deleting one does not delete its videos (they fall back to
+    "General").
+
+14. **Test Website Settings** — from **Website Settings** (admin role+),
+    save a tagline/footer/social change and confirm it shows on the
+    public site; then briefly enable **maintenance mode** and confirm
+    logged-out visitors see the holding page while you (signed in) can
+    still browse normally — turn it back off before publishing for real.
+
+15. **Test the blog** — not implemented yet (see README's "Not yet built").
+
+16. **Test responsive** — 390 / 430 / 768 / 1024 / 1440 / 1920px, both the
     public site and the admin dashboard.
 
 ## Removing demo data before going live
@@ -147,17 +167,14 @@ DELETE FROM videos;
 DELETE FROM categories;
 ```
 
-Then add your real categories (direct SQL/phpMyAdmin for now — category
-management isn't in the admin UI yet) and videos (via **Videos → + Add
-Video** in the dashboard).
+Then add your real categories (**Categories → + Add Category** in the
+dashboard) and videos (**Videos → + Add Video**).
 
 ## Known limitations
 
-- Category and blog-post management has no admin UI yet — categories go
-  in via direct DB access; the blog schema exists but nothing reads/
-  writes it yet. Video management is fully built (`admin/videos.php`).
-- No likes/dislikes, comments, or search — the schema for likes/comments
-  exists (`schema.sql`) but nothing reads/writes it yet.
+- Blog-post management has no admin UI yet — the `blog_posts` schema
+  exists but nothing reads/writes it. Video, category, comment, and
+  settings management are all fully built.
 - No sitemap.xml/robots.txt or structured data yet.
 - No in-app code *editor* — `admin/code.php` is read-only by design (see
   README). Deploy code changes through git.

@@ -13,10 +13,10 @@ $active = $active ?? null;
       <a href="/index.php#categories">Categories</a>
     </nav>
     <div class="nav-actions">
-      <label class="search-box">
+      <form class="search-box" action="/search.php" method="get" role="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" placeholder="Search videos…" aria-label="Search">
-      </label>
+        <input type="search" name="q" placeholder="Search videos…" aria-label="Search" maxlength="100" value="<?= e($_GET['q'] ?? '') ?>">
+      </form>
       <?php if (!empty($show_admin_lock)): ?>
         <a href="/admin/" class="btn-icon" aria-label="Admin" title="Admin">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -32,8 +32,8 @@ $active = $active ?? null;
     <a href="/videos.php"<?= $active === 'videos' ? ' class="active"' : '' ?>>Videos</a>
     <a href="/index.php#categories">Categories</a>
   </nav>
-  <label class="search-box">
+  <form class="search-box" action="/search.php" method="get" role="search">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-    <input type="search" placeholder="Search videos…" aria-label="Search">
-  </label>
+    <input type="search" name="q" placeholder="Search videos…" aria-label="Search" maxlength="100" value="<?= e($_GET['q'] ?? '') ?>">
+  </form>
 </div>
