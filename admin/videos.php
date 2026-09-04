@@ -4,6 +4,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/render.php';
+require_once __DIR__ . '/../includes/uploads.php';
 
 // Any signed-in role (creator and up) can manage videos.
 $admin = require_admin();
@@ -124,7 +125,8 @@ $pendingReportsCount = admin_has_role($admin, 'moderator')
             <h3><?= $editingVideo ? 'Edit Video' : 'Add Video' ?></h3>
             <a href="/admin/videos.php" class="btn btn-secondary btn-sm">Cancel</a>
           </div>
-          <form method="post" action="/admin/actions/video_action.php" style="padding:22px 20px; display:grid; grid-template-columns:1.3fr 1fr; gap:32px;">
+          <?php $currentSourceType = $editingVideo['source_type'] ?? 'upload'; ?>
+          <form method="post" action="/admin/actions/video_action.php" enctype="multipart/form-data" style="padding:22px 20px; display:grid; grid-template-columns:1.3fr 1fr; gap:32px;">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="<?= $editingVideo ? 'update' : 'create' ?>">
             <?php if ($editingVideo): ?><input type="hidden" name="id" value="<?= (int) $editingVideo['id'] ?>"><?php endif; ?>
@@ -161,24 +163,52 @@ $pendingReportsCount = admin_has_role($admin, 'moderator')
                   </select>
                 </div>
               <?php endif; ?>
-            </div>
-
-            <div>
-              <div class="field">
-                <label for="video_url">Video URL <span style="text-transform:none; font-weight:400; color:var(--text-muted);">(direct .mp4 link)</span></label>
-                <input id="video_url" name="video_url" type="url" required placeholder="https://example.com/video.mp4" value="<?= e($editingVideo['video_url'] ?? '') ?>">
-              </div>
-              <video id="video-preview" controls style="width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:18px; display:<?= $editingVideo ? 'block' : 'none' ?>;">
-                <?php if ($editingVideo): ?><source src="<?= e($editingVideo['video_url']) ?>" type="video/mp4"><?php endif; ?>
-              </video>
 
               <div class="field">
-                <label for="thumbnail_url">Thumbnail URL</label>
-                <input id="thumbnail_url" name="thumbnail_url" type="url" placeholder="https://example.com/thumb.jpg" value="<?= e($editingVideo['thumbnail_url'] ?? '') ?>">
+                <label>Thumbnail <span style="text-transform:none; font-weight:400; color:var(--text-muted);">(image upload<?= $editingVideo ? ' — optional, keeps the current one if left blank' : ', required' ?>)</span></label>
+                <input id="thumbnail_file" name="thumbnail_file" type="file" accept="image/jpeg,image/png,image/webp" <?= $editingVideo ? '' : 'required' ?>>
               </div>
               <div id="thumb-preview-wrap" style="aspect-ratio:16/9; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg-elevated); overflow:hidden; display:<?= !empty($editingVideo['thumbnail_url']) ? 'block' : 'none' ?>;">
                 <img id="thumb-preview" src="<?= e($editingVideo['thumbnail_url'] ?? '') ?>" alt="" style="width:100%; height:100%; object-fit:cover;">
               </div>
+            </div>
+
+            <div>
+              <label style="display:block; font-size:0.75rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:8px;">Video Source</label>
+              <div class="chip-row" id="source-type-tabs" style="margin-bottom:16px;">
+                <label class="chip source-tab<?= $currentSourceType === 'upload' ? ' active' : '' ?>"><input type="radio" name="source_type" value="upload" style="display:none;" <?= $currentSourceType === 'upload' ? 'checked' : '' ?>> Upload File</label>
+                <label class="chip source-tab<?= $currentSourceType === 'url' ? ' active' : '' ?>"><input type="radio" name="source_type" value="url" style="display:none;" <?= $currentSourceType === 'url' ? 'checked' : '' ?>> Direct URL</label>
+                <label class="chip source-tab<?= $currentSourceType === 'embed' ? ' active' : '' ?>"><input type="radio" name="source_type" value="embed" style="display:none;" <?= $currentSourceType === 'embed' ? 'checked' : '' ?>> Embed Code</label>
+              </div>
+
+              <div class="source-pane" data-pane="upload">
+                <div class="field">
+                  <label for="video_file">Video file <span style="text-transform:none; font-weight:400; color:var(--text-muted);">(.mp4, .webm, or .mov, up to 200MB)</span></label>
+                  <input id="video_file" name="video_file" type="file" accept="video/mp4,video/webm,video/quicktime">
+                </div>
+              </div>
+
+              <div class="source-pane" data-pane="url" style="display:none;">
+                <div class="field">
+                  <label for="video_url">Video URL <span style="text-transform:none; font-weight:400; color:var(--text-muted);">(direct .mp4/.webm link)</span></label>
+                  <input id="video_url" name="video_url" type="url" placeholder="https://example.com/video.mp4" value="<?= $currentSourceType === 'url' ? e($editingVideo['video_url'] ?? '') : '' ?>">
+                </div>
+              </div>
+
+              <div class="source-pane" data-pane="embed" style="display:none;">
+                <div class="field">
+                  <label for="embed_code">Embed code or URL <span style="text-transform:none; font-weight:400; color:var(--text-muted);">(a full &lt;iframe&gt; snippet, or just the URL)</span></label>
+                  <textarea id="embed_code" name="embed_code" rows="3" placeholder='&lt;iframe src="https://..."&gt;&lt;/iframe&gt;'><?= $currentSourceType === 'embed' ? e($editingVideo['embed_url'] ?? '') : '' ?></textarea>
+                </div>
+              </div>
+
+              <?php if ($editingVideo && $currentSourceType !== 'embed' && !empty($editingVideo['video_url'])): ?>
+                <video controls style="width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--radius-sm); border:1px solid var(--border); margin-top:8px;">
+                  <source src="<?= e($editingVideo['video_url']) ?>" type="video/mp4">
+                </video>
+              <?php elseif ($editingVideo && $currentSourceType === 'embed' && !empty($editingVideo['embed_url'])): ?>
+                <iframe src="<?= e($editingVideo['embed_url']) ?>" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="width:100%; aspect-ratio:16/9; border:0; background:#000; border-radius:var(--radius-sm); border:1px solid var(--border); margin-top:8px;"></iframe>
+              <?php endif; ?>
             </div>
 
             <div style="grid-column:1/-1;">
@@ -188,28 +218,27 @@ $pendingReportsCount = admin_has_role($admin, 'moderator')
         </div>
         <script>
           (function () {
-            const videoUrl = document.getElementById('video_url');
-            const videoPreview = document.getElementById('video-preview');
-            videoUrl.addEventListener('change', () => {
-              const url = videoUrl.value.trim();
-              videoPreview.style.display = url ? 'block' : 'none';
-              videoPreview.querySelector('source').src = url;
-              videoPreview.load();
-            });
+            // Video source tabs
+            const tabs = document.querySelectorAll('#source-type-tabs input[type="radio"]');
+            const panes = document.querySelectorAll('.source-pane');
+            function syncTabs() {
+              tabs.forEach((t) => t.closest('.source-tab').classList.toggle('active', t.checked));
+              panes.forEach((p) => { p.style.display = (p.dataset.pane === document.querySelector('#source-type-tabs input:checked')?.value) ? 'block' : 'none'; });
+            }
+            tabs.forEach((t) => t.addEventListener('change', syncTabs));
+            syncTabs();
 
-            const thumbUrl = document.getElementById('thumbnail_url');
+            // Thumbnail live preview from the chosen file (no network round-trip needed)
+            const thumbFile = document.getElementById('thumbnail_file');
             const thumbWrap = document.getElementById('thumb-preview-wrap');
             const thumbImg = document.getElementById('thumb-preview');
-            thumbUrl.addEventListener('input', () => {
-              const url = thumbUrl.value.trim();
-              if (url) {
-                thumbImg.src = url;
+            thumbFile.addEventListener('change', () => {
+              const file = thumbFile.files[0];
+              if (file) {
+                thumbImg.src = URL.createObjectURL(file);
                 thumbWrap.style.display = 'block';
-              } else {
-                thumbWrap.style.display = 'none';
               }
             });
-            thumbImg.addEventListener('error', () => { thumbWrap.style.display = 'none'; });
           })();
         </script>
       <?php endif; ?>

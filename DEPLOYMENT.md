@@ -17,9 +17,12 @@ mysql -u root -e "
 mysql -u xpl_dev -p xpornlovers_dev < schema.sql
 mysql -u xpl_dev -p xpornlovers_dev < seed.sql   # optional, see "Removing demo data" below
 
-# 2b. Already have a database from before the role/accounts update?
-# Run the migration instead of re-importing schema.sql from scratch:
+# 2b. Already have a database from before the role/accounts update, or
+# the video-upload/embed update? Run whichever migrations you're missing
+# instead of re-importing schema.sql from scratch (both are safe to run
+# even if partially applied already):
 mysql -u xpl_dev -p xpornlovers_dev < migrations/002_accounts_and_roles.sql
+mysql -u xpl_dev -p xpornlovers_dev < migrations/003_upload_and_embed.sql
 
 # 3. Configure
 cp config/config.example.php config/config.php
@@ -82,6 +85,18 @@ then the homepage. Admin is at `/admin/login.php`.
 6. **Set the website URL** — this is the `SITE_URL` constant from step 4;
    it's used for canonical/Open Graph tags.
 
+6b. **Uploads folder + upload size limit** — `uploads/videos/` and
+    `uploads/thumbnails/` need to be writable by the web server (usually
+    already true after a normal zip-upload/FTP transfer; if an upload
+    fails with a storage error, check their permissions in File
+    Manager — 755 is typically enough). The repo's `.user.ini` raises
+    PHP's `upload_max_filesize`/`post_max_size` to 200MB, which works
+    under Hostinger's PHP-FPM (unlike `.htaccess` `php_value`, which FPM
+    ignores) — but PHP-FPM only re-reads `.user.ini` every few minutes,
+    so give it a little time after first upload, and your specific
+    Hostinger plan may still cap uploads lower regardless (check
+    hPanel → Advanced → PHP Configuration if large uploads keep failing).
+
 7. **Test the admin login** — go to `https://yourdomain/admin/login.php`
    (or click the lock icon on the homepage, or visit `/admin`), sign in
    with the founding owner account, `Tyche` / `Tyche`. Immediately set a
@@ -93,9 +108,11 @@ then the homepage. Admin is at `/admin/login.php`.
    login — see README's role table for what each tier can do.
 
 8. **Test video management** — as a creator-role account (or higher), go
-   to **Videos → + Add Video**, paste a video URL and thumbnail URL and
-   confirm both live-preview, save, and confirm it plays correctly on the
-   public site.
+   to **Videos → + Add Video** and try all three video source options
+   (upload a real file, paste a direct URL, paste an embed snippet) plus
+   the required thumbnail upload; confirm the previews update as you go,
+   save, and confirm each plays correctly on the public site (embed
+   videos render as an iframe, the other two as the native player).
 
 9. **Test the report flow** — as a logged-out visitor, click "Report" on
    a video card, submit it, then sign in as a moderator-role account (or
@@ -144,6 +161,11 @@ Video** in the dashboard).
 - No sitemap.xml/robots.txt or structured data yet.
 - No in-app code *editor* — `admin/code.php` is read-only by design (see
   README). Deploy code changes through git.
+- Uploaded video files live on your Hostinger disk quota and are served
+  directly from PHP/Apache — no transcoding, no adaptive bitrate, no
+  CDN. Fine for a modest catalog; a large one will want a proper media
+  host eventually. Direct-URL and embed sources don't have this
+  limitation since the file itself lives elsewhere.
 - The age gate is a real server-side gate (session + signed cookie), but
   it is a self-attestation click-through, not identity/age verification
   against a third-party service — that's a meaningfully bigger feature if

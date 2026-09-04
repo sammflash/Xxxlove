@@ -1,6 +1,13 @@
 # Local/environment-specific — never commit real credentials
 config/config.php
 
+# User-uploaded content — runtime data, not source. Directories stay
+# tracked via .gitkeep; their contents don't belong in git.
+uploads/videos/*
+uploads/thumbnails/*
+!uploads/videos/.gitkeep
+!uploads/thumbnails/.gitkeep
+
 # OS/editor cruft
 .DS_Store
 Thumbs.db

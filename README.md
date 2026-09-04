@@ -29,8 +29,31 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   a creator who crafts a direct request to a moderator/admin/owner-only
   endpoint is refused there too.
 - **Video management** (`admin/videos.php`) — add/edit/delete, category
-  assignment, live thumbnail preview and video-URL preview while typing,
-  publish/unpublish/removed status, paginated library with status filter.
+  assignment, publish/unpublish/removed status, paginated library with
+  status filter. Three ways to supply the video itself, selectable per
+  video:
+  - **Upload a file** straight from the device (computer/phone library)
+    — validated by real file content via `finfo`/`getimagesize`, not
+    just the extension (a `.mp4`-renamed PHP file is rejected), saved
+    under a random filename, size-capped, and the `uploads/` directory
+    has its own `.htaccess` disabling script execution as a second
+    layer of defense regardless of what validation lets through.
+  - **Direct URL** — paste an external `.mp4`/`.webm` link (the
+    original behavior).
+  - **Embed code** — paste a full `<iframe>` embed snippet or a bare
+    embed URL; only the `src` is extracted and kept (any other HTML in
+    a pasted snippet is discarded, never stored or rendered), and it's
+    rendered in a sandboxed `<iframe sandbox="allow-scripts
+    allow-same-origin">` with no top-navigation or popup permissions —
+    an embed can't hijack or redirect the page it's on.
+
+  Thumbnails are upload-only (real image file, same validation
+  approach) — no more pasting a thumbnail URL. Editing a video that
+  replaces its file/thumbnail deletes the old file from disk once the
+  new one is safely saved; deleting a video cleans up its files too.
+  Live previews (thumbnail via `URL.createObjectURL`, video/embed via
+  the existing markup) update as you pick a file or switch source type,
+  no network round-trip needed.
 - **Account management** (`admin/accounts.php`, admin role+) — create
   accounts of any role; only the owner sees/uses suspend, reactivate, and
   delete. Everyone (any role) can change their own username/password from
@@ -57,10 +80,11 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   and CSRF tokens on every form/POST endpoint.
 - **Public site reads from MySQL** — homepage featured grid, `/videos.php`
   listing with category filter + pagination, and `/video.php?slug=...`
-  detail page with an HTML5 `<video>` player, anonymous de-duplicated view
-  counting, and related videos from the same category. No public
-  registration/login anywhere — visitors are identified only by a random,
-  httponly cookie for view/report de-duplication.
+  detail page with an HTML5 `<video>` player (or a sandboxed `<iframe>`
+  for embed-source videos), anonymous de-duplicated view counting, and
+  related videos from the same category. No public registration/login
+  anywhere — visitors are identified only by a random, httponly cookie
+  for view/report de-duplication.
 
 ## Not yet built
 
@@ -100,12 +124,17 @@ includes/age_gate.php       Age-gate render + check (site-wide include)
 includes/age_gate_core.php  Pure age-gate helpers (cookie signing)
 includes/render.php         format_views(), render_video_card()
 includes/helpers.php        e(), redirect(), flash messages, time_ago(), slugify()
+includes/uploads.php        Validated video/thumbnail upload handling, embed-src extraction
 includes/partials/          Shared navbar/footer/head/report-modal/admin-sidebar HTML
 
 config/config.example.php   Config template (copy to config.php — gitignored)
 schema.sql                  Full MySQL schema (fresh installs)
 migrations/002_accounts_and_roles.sql   Adds roles/status/owner to an existing DB
+migrations/003_upload_and_embed.sql     Adds video source_type/embed_url to an existing DB
 seed.sql                    Optional demo categories/videos for dev
+
+uploads/videos/, uploads/thumbnails/   Uploaded files land here; own .htaccess disables script execution
+.user.ini                   Raises PHP upload size limits (works under PHP-FPM, unlike .htaccess php_value)
 
 errors/404.php, errors/500.php   Branded error pages — never leak internals
 .htaccess                   DirectoryIndex, error docs, pretty-URL rules, file protection

@@ -69,11 +69,17 @@ include __DIR__ . '/includes/partials/head.php';
   <section class="section" style="padding-bottom:0;">
     <div class="container" style="max-width:1100px;">
       <div style="border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border); background:#000;">
-        <video controls preload="metadata" style="width:100%; display:block; aspect-ratio:16/9; background:#000;"
-               <?php if (!empty($video['thumbnail_url'])): ?>poster="<?= e($video['thumbnail_url']) ?>"<?php endif; ?>>
-          <source src="<?= e($video['video_url']) ?>" type="video/mp4">
-          Your browser does not support the video tag. <a href="<?= e($video['video_url']) ?>" style="color:var(--pink-soft);">Open the video directly</a>.
-        </video>
+        <?php if ($video['source_type'] === 'embed' && !empty($video['embed_url'])): ?>
+          <iframe src="<?= e($video['embed_url']) ?>" allowfullscreen
+                  sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"
+                  style="width:100%; display:block; aspect-ratio:16/9; border:0; background:#000;"></iframe>
+        <?php else: ?>
+          <video controls preload="metadata" style="width:100%; display:block; aspect-ratio:16/9; background:#000;"
+                 <?php if (!empty($video['thumbnail_url'])): ?>poster="<?= e($video['thumbnail_url']) ?>"<?php endif; ?>>
+            <source src="<?= e($video['video_url']) ?>" type="video/mp4">
+            Your browser does not support the video tag. <a href="<?= e($video['video_url']) ?>" style="color:var(--pink-soft);">Open the video directly</a>.
+          </video>
+        <?php endif; ?>
       </div>
 
       <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-top:24px; flex-wrap:wrap;">

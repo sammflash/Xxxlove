@@ -53,7 +53,11 @@ CREATE TABLE IF NOT EXISTS categories (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
--- videos — content is always an external URL, never uploaded to this host.
+-- videos — three ways to supply the video: a direct external URL, a file
+-- uploaded to this host (path stored in video_url same as a URL would
+-- be), or an embed (an iframe src extracted from a pasted embed
+-- snippet, stored separately in embed_url). thumbnail_url is always an
+-- uploaded file's path — thumbnails are upload-only, never external.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS videos (
     id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -61,7 +65,9 @@ CREATE TABLE IF NOT EXISTS videos (
     slug           VARCHAR(255) NOT NULL UNIQUE,
     description    TEXT NULL,
     category_id    INT UNSIGNED NULL,
-    video_url      VARCHAR(500) NOT NULL,
+    video_url      VARCHAR(500) NULL,
+    source_type    ENUM('url','upload','embed') NOT NULL DEFAULT 'url',
+    embed_url      VARCHAR(500) NULL,
     thumbnail_url  VARCHAR(500) NULL,
     duration       VARCHAR(20) NULL,
     views          INT UNSIGNED NOT NULL DEFAULT 0,
