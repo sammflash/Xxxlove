@@ -9,17 +9,23 @@ $admin = require_admin();
 $pdo = db();
 $canModerate = admin_has_role($admin, 'moderator');
 
-$stats = [
-    'total_videos'     => (int) $pdo->query('SELECT COUNT(*) FROM videos')->fetchColumn(),
-    'published_videos' => (int) $pdo->query("SELECT COUNT(*) FROM videos WHERE status = 'published'")->fetchColumn(),
-    'total_views'      => (int) $pdo->query('SELECT COALESCE(SUM(views), 0) FROM videos')->fetchColumn(),
-    'pending_reports'  => $canModerate ? (int) $pdo->query("SELECT COUNT(*) FROM reports WHERE status = 'pending'")->fetchColumn() : 0,
-    'pending_comments' => $canModerate ? (int) $pdo->query("SELECT COUNT(*) FROM comments WHERE status = 'pending'")->fetchColumn() : 0,
-];
-
+// Creator-role accounts don't get the stats/Reports view at all — their
+// "dashboard" is the Add Video form instead (see the render below), so
+// none of that data is even fetched for them.
+$stats = ['total_videos' => 0, 'published_videos' => 0, 'total_views' => 0, 'pending_reports' => 0, 'pending_comments' => 0];
 $pendingReports = [];
 $resolvedReports = [];
+$categories = [];
+
 if ($canModerate) {
+    $stats = [
+        'total_videos'     => (int) $pdo->query('SELECT COUNT(*) FROM videos')->fetchColumn(),
+        'published_videos' => (int) $pdo->query("SELECT COUNT(*) FROM videos WHERE status = 'published'")->fetchColumn(),
+        'total_views'      => (int) $pdo->query('SELECT COALESCE(SUM(views), 0) FROM videos')->fetchColumn(),
+        'pending_reports'  => (int) $pdo->query("SELECT COUNT(*) FROM reports WHERE status = 'pending'")->fetchColumn(),
+        'pending_comments' => (int) $pdo->query("SELECT COUNT(*) FROM comments WHERE status = 'pending'")->fetchColumn(),
+    ];
+
     $pendingReports = $pdo->query(
         "SELECT r.id, r.reason, r.details, r.created_at, v.id AS video_id, v.title AS video_title, v.status AS video_status
          FROM reports r
@@ -37,6 +43,8 @@ if ($canModerate) {
          ORDER BY r.resolved_at DESC
          LIMIT 5"
     )->fetchAll();
+} else {
+    $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
 }
 
 $recentVideos = $pdo->query(
@@ -65,6 +73,8 @@ $accountSuccess = flash_get('account_success');
 $accountError = flash_get('account_error');
 $reportActionMsg = flash_get('report_action');
 $dashboardError = flash_get('dashboard_error');
+$videoError = flash_get('video_error');
+$videoSuccess = flash_get('video_success');
 ?>
 <!doctype html>
 <html lang="en">
@@ -95,7 +105,9 @@ $dashboardError = flash_get('dashboard_error');
         <h2>Dashboard</h2>
       </div>
       <div class="topbar-actions">
-        <a href="/admin/videos.php?new=1" class="btn btn-primary btn-sm">+ Add Video</a>
+        <?php if ($canModerate): ?>
+          <a href="/admin/videos.php?new=1" class="btn btn-primary btn-sm">+ Add Video</a>
+        <?php endif; ?>
         <a href="/index.php" class="btn-icon" aria-label="View site" title="View site">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
         </a>
@@ -111,7 +123,14 @@ $dashboardError = flash_get('dashboard_error');
           <?= e($reportActionMsg) ?>
         </p>
       <?php endif; ?>
+      <?php if ($videoError): ?>
+        <p style="background:rgba(255,45,117,0.12); border:1px solid var(--pink-dark); color:var(--pink-soft); border-radius:var(--radius-sm); padding:12px 16px; font-size:0.85rem; margin-bottom:20px;"><?= e($videoError) ?></p>
+      <?php endif; ?>
+      <?php if ($videoSuccess): ?>
+        <p style="background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.4); color:#4ADE80; border-radius:var(--radius-sm); padding:12px 16px; font-size:0.85rem; margin-bottom:20px;"><?= e($videoSuccess) ?></p>
+      <?php endif; ?>
 
+      <?php if ($canModerate): ?>
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-card-top">
@@ -134,19 +153,16 @@ $dashboardError = flash_get('dashboard_error');
           <div class="stat-value"><?= format_views($stats['total_views']) ?></div>
           <div class="stat-label">Total Views</div>
         </div>
-        <?php if ($canModerate): ?>
-          <div class="stat-card" style="<?= $stats['pending_reports'] > 0 ? 'border-color:rgba(255,45,117,0.5);' : '' ?>">
-            <div class="stat-card-top">
-              <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V3"/></svg></div>
-              <?php if ($stats['pending_reports'] > 0): ?><span class="delta">needs review</span><?php endif; ?>
-            </div>
-            <div class="stat-value"><?= number_format($stats['pending_reports']) ?></div>
-            <div class="stat-label">Pending Reports</div>
+        <div class="stat-card" style="<?= $stats['pending_reports'] > 0 ? 'border-color:rgba(255,45,117,0.5);' : '' ?>">
+          <div class="stat-card-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V3"/></svg></div>
+            <?php if ($stats['pending_reports'] > 0): ?><span class="delta">needs review</span><?php endif; ?>
           </div>
-        <?php endif; ?>
+          <div class="stat-value"><?= number_format($stats['pending_reports']) ?></div>
+          <div class="stat-label">Pending Reports</div>
+        </div>
       </div>
 
-      <?php if ($canModerate): ?>
       <!-- Reports -->
       <div class="panel" id="reports" style="margin-bottom:24px; scroll-margin-top:20px;">
         <div class="panel-head">
@@ -200,6 +216,13 @@ $dashboardError = flash_get('dashboard_error');
           </div>
         <?php endif; ?>
       </div>
+      <?php else: ?>
+        <!-- Creator role: the dashboard IS the add-video form — no stats, no reports. -->
+        <?php
+          $editingVideo = null;
+          $formCancelUrl = null;
+          include __DIR__ . '/../includes/partials/video_form.php';
+        ?>
       <?php endif; ?>
 
       <!-- Recent Uploads -->

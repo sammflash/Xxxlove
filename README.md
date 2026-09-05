@@ -15,9 +15,13 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   via session + a signed, HMAC'd cookie (30 days) so it can't be forged by
   hand-setting a cookie value, and isn't re-shown every visit.
 - **Role-based staff accounts** — three tiers on one `admins` table:
-  - **Creator**: add/edit/delete any video, full video library.
-  - **Moderator**: everything a creator can, plus the Reports panel
-    (remove or dismiss reported videos).
+  - **Creator**: add/edit/delete any video, full video library. Their
+    "Dashboard" is the Add Video form itself (plus Recent Uploads and
+    Account & Security) — no stats grid, no Reports panel; adding
+    several videos in a row never needs the "+ Add Video" button since
+    a successful upload lands them right back on a fresh form.
+  - **Moderator**: everything a creator can, plus the stats dashboard
+    and the Reports panel (remove or dismiss reported videos).
   - **Admin**: everything a moderator can, plus creating new creator/
     moderator/admin accounts and a read-only website-code viewer.
   - **Owner** (one account, `is_owner` flag — not a role) — the only
@@ -176,6 +180,7 @@ includes/render.php         format_views(), render_video_card()
 includes/helpers.php        e(), redirect(), flash messages, time_ago(), slugify(), setting()
 includes/uploads.php        Validated video/thumbnail upload handling, embed-src extraction
 includes/partials/          Shared navbar/footer/head/report-modal/share-popover/admin-sidebar HTML
+includes/partials/video_form.php   Add/edit video form — shared by admin/videos.php and the creator dashboard
 
 config/config.example.php   Config template (copy to config.php — gitignored)
 schema.sql                  Full MySQL schema (fresh installs)

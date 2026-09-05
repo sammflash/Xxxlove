@@ -156,12 +156,18 @@ if ($thumbUpload['error']) {
     $errors[] = 'Choose a thumbnail image to upload.';
 }
 
+// Creator-role accounts land on admin/dashboard.php (their "dashboard" is
+// the Add Video form itself) — send them back there, not the full library,
+// so adding several videos in a row never needs the "+ Add Video" button.
+$canModerate = admin_has_role($admin, 'moderator');
+$createFormUrl = $canModerate ? '/admin/videos.php?new=1' : '/admin/dashboard.php';
+
 if ($errors) {
     // Don't leave orphaned files behind from this failed attempt.
     delete_uploaded_file($newVideoFilePath);
     delete_uploaded_file($newThumbFilePath);
     flash_set('video_error', implode(' ', $errors));
-    $back = $action === 'update' ? '/admin/videos.php?edit=' . (int) ($_POST['id'] ?? 0) : '/admin/videos.php?new=1';
+    $back = $action === 'update' ? '/admin/videos.php?edit=' . (int) ($_POST['id'] ?? 0) : $createFormUrl;
     redirect($back);
 }
 
@@ -176,7 +182,7 @@ if ($action === 'create') {
         $finalThumbnailUrl, $duration ?: null, 'published', $featured, $admin['id'], $admin['id'],
     ]);
     flash_set('video_success', 'Added "' . $title . '".');
-    redirect('/admin/videos.php');
+    redirect($canModerate ? '/admin/videos.php' : '/admin/dashboard.php');
 }
 
 // ---- update ----
