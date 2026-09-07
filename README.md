@@ -26,10 +26,7 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
     moderator/admin accounts and a read-only website-code viewer.
   - **Owner** (one account, `is_owner` flag — not a role) — the only
     account that can suspend or delete other accounts. Never settable
-    through the app. Founding owner: `admin` / `admin` — change the
-    password (and/or username) from Account & Security whenever you
-    like, never required, but do it right after your first login on a
-    live site since this default is well-known.
+    through the app. Founding owner: `Tyche` / `Tyche`.
 
   Every permission check is enforced server-side in the action handlers
   (`require_role()` in `includes/auth.php`), not just hidden in the UI —

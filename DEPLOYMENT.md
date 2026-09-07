@@ -113,11 +113,10 @@ then the homepage. Admin is at `/admin/login.php`.
 
 7. **Test the admin login** — go to `https://yourdomain/admin/login.php`
    (or click the lock icon on the homepage, or visit `/admin`), sign in
-   with the founding owner account, `admin` / `admin`. Immediately set a
-   real password (and ideally a new username) from **Account & Security**
-   on the dashboard before publishing real content — the default is
-   intentionally never forced, but "admin"/"admin" is a well-known
-   default and shouldn't stay live.
+   with the founding owner account, `Tyche` / `Tyche`. Immediately set a
+   real password from **Account & Security** on the dashboard if this is
+   going live for real — the default is intentionally never forced, but
+   you should still change it yourself before publishing real content.
    From **Manage Accounts**, create separate creator/moderator/admin
    accounts for anyone else on the team rather than sharing the owner
    login — see README's role table for what each tier can do.
@@ -138,7 +137,7 @@ then the homepage. Admin is at `/admin/login.php`.
     cannot see or reach `/admin/accounts.php` or `/admin/code.php`
     (redirected back to the dashboard with a permission message), that a
     non-owner admin account can create accounts but has no suspend/
-    delete controls, and that only the owner (`admin`, or whichever
+    delete controls, and that only the owner (`Tyche`, or whichever
     account you've flipped `is_owner` on) can suspend/reactivate/delete.
 
 11. **Test search** — use the navbar search box (desktop and mobile) and
