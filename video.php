@@ -101,7 +101,7 @@ $og_type = 'video.other';
 <main>
   <section class="section" style="padding-bottom:0;">
     <div class="container" style="max-width:1100px;">
-      <div style="border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border); background:#000;">
+      <div style="position:relative; border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border); background:#000;">
         <?php if ($video['source_type'] === 'embed' && !empty($video['embed_url'])): ?>
           <iframe src="<?= e($video['embed_url']) ?>" allowfullscreen
                   sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"
@@ -112,6 +112,13 @@ $og_type = 'video.other';
             <source src="<?= e($video['video_url']) ?>" type="video/mp4">
             Your browser does not support the video tag. <a href="<?= e($video['video_url']) ?>" style="color:var(--pink-soft);">Open the video directly</a>.
           </video>
+          <!-- Brand watermark — uploaded/direct-URL videos only (not third-party embeds).
+               Links back to the homepage; positioned clear of the native control bar. -->
+          <a href="/index.php" class="player-watermark" aria-label="<?= e(SITE_NAME) ?> home" target="_blank" rel="noopener noreferrer">
+            <span class="logo logo--sm">
+              <span class="logo-mark">X</span><span class="logo-text">PORN <span class="accent">LOVERS</span></span>
+            </span>
+          </a>
         <?php endif; ?>
       </div>
 

@@ -89,6 +89,10 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   related videos from the same category. No public registration/login
   anywhere — visitors are identified only by a random, httponly cookie
   for view/report de-duplication.
+- **Player watermark** — uploaded and direct-URL videos carry a small
+  brand watermark (top-left corner of the player) linking back to the
+  homepage in a new tab. Embed-source videos (a third-party iframe) are
+  left un-watermarked — it isn't this site's content to brand.
 - **Share** — a Share button under the player on every video page, and
   on every row of the admin video library/Recent Uploads (any account —
   it's not permission-gated, just a convenience). Opens a small popover

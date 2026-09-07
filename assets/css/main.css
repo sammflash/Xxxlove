@@ -833,3 +833,31 @@ input, select { font-family: inherit; }
 .comment-item-head strong { font-size: 0.88rem; color: var(--text-primary); }
 .comment-item-head span { font-size: 0.76rem; color: var(--text-muted); }
 .comment-item p { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; }
+
+/* ---------- Player watermark (uploaded/direct-URL videos) ---------- */
+.player-watermark {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  opacity: 0.7;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+  pointer-events: auto;
+}
+.player-watermark:hover,
+.player-watermark:focus-visible {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.65);
+}
+.player-watermark .logo-mark { font-size: 1.05rem; }
+.player-watermark .logo-text { font-size: 0.56rem; }
+@media (max-width: 560px) {
+  .player-watermark { top: 8px; left: 8px; padding: 4px 8px; }
+  .player-watermark .logo-mark { font-size: 0.9rem; }
+  .player-watermark .logo-text { font-size: 0.5rem; }
+}
