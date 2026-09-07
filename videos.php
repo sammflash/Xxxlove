@@ -56,7 +56,10 @@ function videos_page_url(int $p, ?string $category): string
     return '/videos.php?' . http_build_query($params);
 }
 
-$page_title = $activeCategory ? e($activeCategory['name']) . ' Videos — ' . SITE_NAME : 'Videos — ' . SITE_NAME;
+// Raw here on purpose — head.php escapes $page_title itself for the
+// <title>/OG/Twitter tags; escaping it here too would double-encode any
+// special character in the category name (e.g. "Editor's Pick").
+$page_title = $activeCategory ? $activeCategory['name'] . ' Videos — ' . SITE_NAME : 'Videos — ' . SITE_NAME;
 $page_description = 'Browse all videos on ' . SITE_NAME . '.';
 $canonical_path = '/videos.php' . ($activeCategory ? '?category=' . urlencode($activeCategory['slug']) : '');
 ?>

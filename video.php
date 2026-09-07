@@ -81,7 +81,10 @@ $commentsStmt = $pdo->prepare(
 $commentsStmt->execute([$video['id']]);
 $comments = $commentsStmt->fetchAll();
 
-$page_title = e($video['title']) . ' — ' . SITE_NAME;
+// Raw here on purpose — head.php escapes $page_title itself for the
+// <title>/OG/Twitter tags; escaping it here too would double-encode any
+// special character in the video title.
+$page_title = $video['title'] . ' — ' . SITE_NAME;
 $page_description = $video['description'] ? mb_substr(strip_tags($video['description']), 0, 160) : ('Watch ' . $video['title'] . ' on ' . SITE_NAME . '.');
 $canonical_path = '/video.php?slug=' . urlencode($video['slug']);
 // Absolute thumbnail URL so link previews (WhatsApp, Telegram, etc.)

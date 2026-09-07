@@ -31,14 +31,16 @@ CREATE TABLE IF NOT EXISTS admins (
     FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Founding owner account: username "Tyche", password "Tyche".
--- This hash was generated with PHP's password_hash('Tyche', PASSWORD_DEFAULT).
--- Change the password in the app (Account & Security) whenever you like —
--- never required. is_owner=1 is permanent: only this account (or whichever
--- account you manually flip is_owner on in the database) can suspend or
--- delete other admin/moderator/creator accounts.
+-- Founding owner account: username "admin", password "admin".
+-- This hash was generated with PHP's password_hash('admin', PASSWORD_DEFAULT).
+-- Change the username/password from the app (Account & Security) whenever
+-- you like — never required, but strongly recommended right after your
+-- first login since "admin"/"admin" is a well-known default. is_owner=1 is
+-- permanent: only this account (or whichever account you manually flip
+-- is_owner on in the database) can suspend or delete other admin/
+-- moderator/creator accounts.
 INSERT INTO admins (username, password_hash, role, is_owner)
-VALUES ('Tyche', '$2y$12$AZywfwTOFrSO9pv1zvOrF.Ypts2vtlptYzyvptQgnwk9Rcje8mKrm', 'admin', 1)
+VALUES ('admin', '$2y$12$.e9BtHKbU7g.Vz7ii2dSS./2nAte6JOI2rb6OXqjoH6Kd9MXBqN2i', 'admin', 1)
 ON DUPLICATE KEY UPDATE username = username;
 
 -- ---------------------------------------------------------------------------

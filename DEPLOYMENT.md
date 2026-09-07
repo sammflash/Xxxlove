@@ -57,9 +57,18 @@ then the homepage. Admin is at `/admin/login.php`.
    upload `schema.sql`. Optionally also import `seed.sql` if you want
    sample content to start from (see below to remove it later).
 
-3. **Upload the files** — upload everything in this repo to
-   `public_html/` (via File Manager's zip-upload-and-extract, or FTP/SFTP,
-   or git if your plan supports it). Keep the folder structure as-is.
+3. **Upload the files** — upload this repo to `public_html/` (via File
+   Manager's zip-upload-and-extract, or FTP/SFTP, or git if your plan
+   supports it), keeping the folder structure as-is. Leave out anything
+   that isn't runtime code: `.git/` (never upload this — it's your full
+   history, not a source of secrets since none are committed, but it has
+   no reason to sit in a public web root either), `README.md`,
+   `DEPLOYMENT.md`, `migrations/` (only needed when upgrading an
+   *existing* production database — a fresh install doesn't need them),
+   and `seed.sql` (demo content — only bring it if you actually want the
+   sample videos/categories live). Everything else — `admin/`, `api/`,
+   `assets/`, `config/`, `errors/`, `includes/`, `uploads/`, the root
+   `.php` files, `.htaccess`, and `.user.ini` — is required.
 
 4. **Configure** — on the server, copy `config/config.example.php` to
    `config/config.php` and fill in:
@@ -71,7 +80,10 @@ then the homepage. Admin is at `/admin/login.php`.
      value or the one in this repo's local dev config.
    - `FORCE_HTTPS_COOKIES` = `true` once SSL (Hostinger's free SSL) is
      active on the domain
-   - `APP_DEBUG` = `false`
+   - `APP_DEBUG` = `false` (this is the template's default already —
+     with it off, a PHP error is never shown to a visitor; it's always
+     logged to the server's PHP error log instead, and the visitor gets
+     the branded `errors/500.php` page)
 
    `config/config.php` is never committed to git (see `.gitignore`) and
    `config/.htaccess` blocks direct HTTP access to the whole folder as a
@@ -101,10 +113,11 @@ then the homepage. Admin is at `/admin/login.php`.
 
 7. **Test the admin login** — go to `https://yourdomain/admin/login.php`
    (or click the lock icon on the homepage, or visit `/admin`), sign in
-   with the founding owner account, `Tyche` / `Tyche`. Immediately set a
-   real password from **Account & Security** on the dashboard if this is
-   going live for real — the default is intentionally never forced, but
-   you should still change it yourself before publishing real content.
+   with the founding owner account, `admin` / `admin`. Immediately set a
+   real password (and ideally a new username) from **Account & Security**
+   on the dashboard before publishing real content — the default is
+   intentionally never forced, but "admin"/"admin" is a well-known
+   default and shouldn't stay live.
    From **Manage Accounts**, create separate creator/moderator/admin
    accounts for anyone else on the team rather than sharing the owner
    login — see README's role table for what each tier can do.
@@ -125,7 +138,7 @@ then the homepage. Admin is at `/admin/login.php`.
     cannot see or reach `/admin/accounts.php` or `/admin/code.php`
     (redirected back to the dashboard with a permission message), that a
     non-owner admin account can create accounts but has no suspend/
-    delete controls, and that only the owner (`Tyche`, or whichever
+    delete controls, and that only the owner (`admin`, or whichever
     account you've flipped `is_owner` on) can suspend/reactivate/delete.
 
 11. **Test search** — use the navbar search box (desktop and mobile) and

@@ -26,7 +26,10 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
     moderator/admin accounts and a read-only website-code viewer.
   - **Owner** (one account, `is_owner` flag — not a role) — the only
     account that can suspend or delete other accounts. Never settable
-    through the app. Founding owner: `Tyche` / `Tyche`.
+    through the app. Founding owner: `admin` / `admin` — change the
+    password (and/or username) from Account & Security whenever you
+    like, never required, but do it right after your first login on a
+    live site since this default is well-known.
 
   Every permission check is enforced server-side in the action handlers
   (`require_role()` in `includes/auth.php`), not just hidden in the UI —
@@ -82,6 +85,12 @@ See **DEPLOYMENT.md** for local setup and Hostinger deployment instructions.
   attempts, suspended accounts blocked at login (checked only after the
   password verifies, so a wrong guess never reveals suspension status),
   and CSRF tokens on every form/POST endpoint.
+- **Error handling** — `APP_DEBUG` (in `config.php`) is the one switch:
+  off (the production default), a PHP error is never shown to a
+  visitor — a global handler (`includes/session.php`) logs the real
+  error server-side and renders the branded `errors/500.php` page
+  instead. On (local dev only), errors display normally so you can see
+  what broke. Logging happens either way.
 - **Public site reads from MySQL** — homepage featured grid, `/videos.php`
   listing with category filter + pagination, and `/video.php?slug=...`
   detail page with an HTML5 `<video>` player (or a sandboxed `<iframe>`

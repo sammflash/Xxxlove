@@ -6,6 +6,26 @@
 
 require_once __DIR__ . '/../config/config.php';
 
+// ---- Error handling: never leak PHP errors to visitors, always log them ---
+// APP_DEBUG (set in config.php) controls whether errors are ever shown in
+// the response — they're logged to the server's PHP error log either way.
+error_reporting(E_ALL);
+ini_set('log_errors', '1');
+$appDebug = defined('APP_DEBUG') && APP_DEBUG;
+ini_set('display_errors', $appDebug ? '1' : '0');
+ini_set('display_startup_errors', $appDebug ? '1' : '0');
+
+if (!$appDebug) {
+    set_exception_handler(function (Throwable $e) {
+        error_log('[uncaught] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
+        if (!headers_sent()) {
+            http_response_code(500);
+            require __DIR__ . '/../errors/500.php';
+        }
+        exit;
+    });
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
