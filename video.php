@@ -112,14 +112,16 @@ $og_type = 'video.other';
             <source src="<?= e($video['video_url']) ?>" type="video/mp4">
             Your browser does not support the video tag. <a href="<?= e($video['video_url']) ?>" style="color:var(--pink-soft);">Open the video directly</a>.
           </video>
-          <!-- Brand watermark — uploaded/direct-URL videos only (not third-party embeds).
-               Links back to the homepage; positioned clear of the native control bar. -->
-          <a href="/index.php" class="player-watermark" aria-label="<?= e(SITE_NAME) ?> home" target="_blank" rel="noopener noreferrer">
-            <span class="logo logo--sm">
-              <span class="logo-mark">X</span><span class="logo-text">PORN <span class="accent">LOVERS</span></span>
-            </span>
-          </a>
         <?php endif; ?>
+        <!-- Brand watermark — every source type, including third-party
+             embeds: it's an overlay on our own page, not injected into
+             the embed itself. Links back to the homepage, positioned
+             clear of the native/embedded control bar. -->
+        <a href="/index.php" class="player-watermark" aria-label="<?= e(SITE_NAME) ?> home" target="_blank" rel="noopener noreferrer">
+          <span class="logo logo--sm">
+            <span class="logo-mark">X</span><span class="logo-text">PORN <span class="accent">LOVERS</span></span>
+          </span>
+        </a>
       </div>
 
       <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-top:24px; flex-wrap:wrap;">
