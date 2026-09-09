@@ -837,11 +837,11 @@ input, select { font-family: inherit; }
 /* ---------- Player watermark (uploaded/direct-URL videos) ---------- */
 .player-watermark {
   position: absolute;
-  top: 80%;
+  top: 70%;
   left: 12px;
   z-index: 2;
   display: inline-flex;
-  padding: 7px 12px;
+  padding: 11px 18px;
   border-radius: var(--radius-full);
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(2px);
@@ -854,10 +854,13 @@ input, select { font-family: inherit; }
   opacity: 1;
   background: rgba(0, 0, 0, 0.65);
 }
-.player-watermark .logo-mark { font-size: 1.26rem; }
-.player-watermark .logo-text { font-size: 0.67rem; }
+.player-watermark .logo-mark { font-size: 1.89rem; }
+.player-watermark .logo-text { font-size: 1rem; }
 @media (max-width: 560px) {
-  .player-watermark { top: 80%; left: 8px; padding: 5px 10px; }
-  .player-watermark .logo-mark { font-size: 1.08rem; }
-  .player-watermark .logo-text { font-size: 0.6rem; }
+  /* The native control bar eats a much bigger share of a short mobile
+     player's height than a wide desktop one, so this needs more
+     clearance than the 70% used above 560px. */
+  .player-watermark { top: 55%; left: 8px; padding: 8px 15px; }
+  .player-watermark .logo-mark { font-size: 1.62rem; }
+  .player-watermark .logo-text { font-size: 0.9rem; }
 }
