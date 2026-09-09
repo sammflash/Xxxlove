@@ -9,14 +9,20 @@
  * signed cookie (HMAC'd with AGE_GATE_SECRET, see age_gate_core.php) so
  * returning visitors aren't re-gated every single browser session,
  * while the cookie can't simply be hand-set to bypass the check.
+ *
+ * Known social/messaging link-preview bots (WhatsApp, Telegram, etc.)
+ * are also let through — see is_link_preview_bot() — so a shared link
+ * shows a real title/thumbnail card instead of a generic "Age
+ * Verification" one. That never verifies the *visitor*: a real person
+ * clicking the same link still hits this gate exactly as before.
  */
 
 require_once __DIR__ . '/session.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/age_gate_core.php';
 
-if (age_gate_is_verified()) {
-    return; // Verified — let the real page render.
+if (age_gate_is_verified() || is_link_preview_bot()) {
+    return; // Verified, or a known preview bot building a share card — let the real page render.
 }
 
 // Not verified: render the gate and stop. Nothing below this file's

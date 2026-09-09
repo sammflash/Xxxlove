@@ -50,3 +50,31 @@ function age_gate_grant(): void
         'samesite' => 'Lax',
     ]);
 }
+
+/**
+ * Known link-preview scraper user agents (WhatsApp, Telegram, Facebook,
+ * X/Twitter, Slack, Discord, LinkedIn, Skype, Pinterest, Reddit). These
+ * bots exist only to read a page's <head> meta tags and build a share
+ * card — they never execute JS, submit the age-gate form, or stream a
+ * video — so this lets a shared link show the real title/thumbnail
+ * instead of a generic "Age Verification" card.
+ *
+ * This is a per-request User-Agent check, not a session/cookie grant:
+ * it never marks the *visitor* as age-verified, so a real person
+ * clicking that same link still hits the real gate exactly as before —
+ * only the preview-fetching bot's own request skips the interstitial.
+ * User-Agent is trivially spoofable, so this is a UX nicety for social
+ * previews, not a security boundary; the actual protections (age gate
+ * for humans, unpublished/removed videos never rendering) are unchanged.
+ */
+function is_link_preview_bot(): bool
+{
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    if ($ua === '') {
+        return false;
+    }
+    return (bool) preg_match(
+        '/WhatsApp|TelegramBot|facebookexternalhit|Facebot|Twitterbot|Slackbot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterest\/|redditbot|vkShare|Iframely|W3C_Validator/i',
+        $ua
+    );
+}
